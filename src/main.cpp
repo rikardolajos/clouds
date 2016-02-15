@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	}
 
 	/* Create a window icon */
-	SDL_Surface *icon = SDL_LoadBMP("../res/window_icon.bmp");
+	SDL_Surface *icon = SDL_LoadBMP("./res/window_icon.bmp");
 	SDL_SetWindowIcon(window, icon);
 	SDL_FreeSurface(icon);
 
@@ -118,17 +118,17 @@ int main(int argc, char** argv)
 
 	/* Initialize shaders */
 	Shader sky_shader;
-	if (shader_init(&sky_shader, "../res/shaders/sky.vert", "../res/shaders/sky.frag") != 0) {
+	if (shader_init(&sky_shader, "./res/shaders/sky.vert", "./res/shaders/sky.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
 	Shader terrain_shader;
-	if (shader_init(&terrain_shader, "../res/shaders/terrain.vert", "../res/shaders/terrain.frag") != 0) {
+	if (shader_init(&terrain_shader, "./res/shaders/terrain.vert", "./res/shaders/terrain.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
 	Shader resolve_shader;
-	if (shader_init(&resolve_shader, "../res/shaders/resolve.vert", "../res/shaders/resolve.frag") != 0) {
+	if (shader_init(&resolve_shader, "./res/shaders/resolve.vert", "./res/shaders/resolve.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 	/* Load models */
 	log("Loading sky dome...\n");
 	Model sky_model;
-	if (model_load_obj(&sky_model, "../res/models/sky_uv.obj") != 0) {
+	if (model_load_obj(&sky_model, "./res/models/sky_uv.obj") != 0) {
 		log("Error: Failed to load model in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 	sky_model.shader = sky_shader;
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 
 	log("Loading terrain...\n");
 	Model terrain_model;
-	if (model_load_obj(&terrain_model, "../res/models/terrain_uv.obj") != 0) {
+	if (model_load_obj(&terrain_model, "./res/models/terrain_uv.obj") != 0) {
 		log("Error: Failed to load model in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 	terrain_model.shader = terrain_shader;
@@ -157,12 +157,17 @@ int main(int argc, char** argv)
 	/* Create textures */
 	log("\nLoading noise textures...\n");
 	Texture terrain_texture;
-	if (texture2D_from_ex5(&terrain_texture, "../res/textures/terrain.ex5") != 0) {
+	if (texture2D_from_ex5(&terrain_texture, "./res/textures/terrain.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
 	Texture perlin1_texture;
-	if (texture3D_from_ex5(&perlin1_texture, "../res/textures/perlin2.ex5") != 0) {
+	if (texture3D_from_ex5(&perlin1_texture, "./res/textures/perlin2.ex5") != 0) {
+		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
+	}
+
+	Texture worley_texture;
+	if (texture3D_from_ex5(&worley_texture, "./res/textures/worley.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
@@ -256,6 +261,7 @@ int main(int argc, char** argv)
 		shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
 		shader_send_texture2D(resolve_shader, terrain_texture, "terrain_texture");
 		shader_send_texture3D(resolve_shader, perlin1_texture, "perlin1");
+		shader_send_texture3D(resolve_shader, worley_texture, "worley");
 
 		/* OpenGL rendering */
 		fs_quad_set_as_render_target(fs_quad);

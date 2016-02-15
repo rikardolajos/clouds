@@ -6,6 +6,7 @@ out vec4 frag_color;
 
 /////////////////////////////////
 uniform sampler3D perlin1;
+uniform sampler3D worley;
 uniform sampler2D terrain_texture;
 /////////////////////////////////
 
@@ -101,5 +102,5 @@ void main() {
 	frag_color = diffuse_color + cloud_color;
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(perlin1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 3).r) * coverage, 1.0);
-	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 2).r), 1.0);
+	frag_color = vec4(vec3(texture(worley, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.85) * 4).r), 1.0);
 }
