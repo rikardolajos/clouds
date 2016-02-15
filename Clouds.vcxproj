@@ -40,11 +40,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <SourcePath>..\lib\gl3w\src;..\src;$(SourcePath)</SourcePath>
-    <OutDir>..\bin\$(Configuration)\</OutDir>
+    <OutDir>$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <SourcePath>..\lib\gl3w\src;..\src;$(SourcePath)</SourcePath>
-    <OutDir>..\bin\$(Configuration)\</OutDir>
+    <OutDir>$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -81,36 +81,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\camera.cpp" />
-    <ClCompile Include="..\src\fullscreen_quad.cpp" />
-    <ClCompile Include="..\src\log.cpp" />
-    <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\model.cpp" />
-    <ClCompile Include="..\src\noise.cpp" />
-    <ClCompile Include="..\src\shader.cpp" />
-    <ClCompile Include="..\src\texture.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\src\camera.h" />
-    <ClInclude Include="..\src\fullscreen_quad.h" />
-    <ClInclude Include="..\src\log.h" />
-    <ClInclude Include="..\src\model.h" />
-    <ClInclude Include="..\src\noise.h" />
-    <ClInclude Include="..\src\shader.h" />
-    <ClInclude Include="..\src\texture.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\res\models\sky.blend" />
     <None Include="..\res\models\terrain.blend" />
-    <None Include="..\res\shaders\resolve.frag" />
-    <None Include="..\res\shaders\resolve.vert" />
-    <None Include="..\res\shaders\sky.frag" />
-    <None Include="..\res\shaders\sky.vert" />
-    <None Include="..\res\shaders\terrain.frag" />
-    <None Include="..\res\shaders\terrain.vert" />
+    <None Include="res\shaders\resolve.frag" />
+    <None Include="res\shaders\resolve.vert" />
+    <None Include="res\shaders\sky.frag" />
+    <None Include="res\shaders\sky.vert" />
+    <None Include="res\shaders\terrain.frag" />
+    <None Include="res\shaders\terrain.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\res\window_icon.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\camera.cpp" />
+    <ClCompile Include="src\fullscreen_quad.cpp" />
+    <ClCompile Include="src\log.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\model.cpp" />
+    <ClCompile Include="src\noise.cpp" />
+    <ClCompile Include="src\shader.cpp" />
+    <ClCompile Include="src\texture.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\camera.h" />
+    <ClInclude Include="src\fullscreen_quad.h" />
+    <ClInclude Include="src\log.h" />
+    <ClInclude Include="src\model.h" />
+    <ClInclude Include="src\noise.h" />
+    <ClInclude Include="src\shader.h" />
+    <ClInclude Include="src\texture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
