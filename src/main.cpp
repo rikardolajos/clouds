@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 	sky_model.scale = glm::vec3(1000.0f, 1000.0f, 1000.0f);
 	Model sun;
 
-	log("Loading terrain...\n");
+	log("Loading terrain plane...\n");
 	Model terrain_model;
 	if (model_load_obj(&terrain_model, "./res/models/terrain_uv.obj") != 0) {
 		log("Error: Failed to load model in %s at line %d.\n\n", __FILE__, __LINE__);
@@ -155,17 +155,19 @@ int main(int argc, char** argv)
 	terrain_model.shader = terrain_shader;
 
 	/* Create textures */
-	log("\nLoading noise textures...\n");
+	log("\nLoading terrain texture...\n");
 	Texture terrain_texture;
 	if (texture2D_from_ex5(&terrain_texture, "./res/textures/terrain.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
+	log("Loading Perlin noise texture...\n");
 	Texture perlin1_texture;
 	if (texture3D_from_ex5(&perlin1_texture, "./res/textures/perlin2.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
+	log("Loading Worley noise texture...\n");
 	Texture worley_texture;
 	if (texture3D_from_ex5(&worley_texture, "./res/textures/worley.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
