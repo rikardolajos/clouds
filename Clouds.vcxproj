@@ -99,7 +99,6 @@
     <ClCompile Include="src\log.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\model.cpp" />
-    <ClCompile Include="src\noise.cpp" />
     <ClCompile Include="src\shader.cpp" />
     <ClCompile Include="src\texture.cpp" />
   </ItemGroup>
@@ -108,7 +107,6 @@
     <ClInclude Include="src\fullscreen_quad.h" />
     <ClInclude Include="src\log.h" />
     <ClInclude Include="src\model.h" />
-    <ClInclude Include="src\noise.h" />
     <ClInclude Include="src\shader.h" />
     <ClInclude Include="src\texture.h" />
   </ItemGroup>
