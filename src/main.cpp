@@ -10,7 +10,6 @@
 #include "fullscreen_quad.h"
 #include "log.h"
 #include "model.h"
-#include "noise.h"
 #include "shader.h"
 #include "texture.h"
 
