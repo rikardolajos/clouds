@@ -24,15 +24,13 @@ uniform mat4 proj;
 uniform float cloud_base;
 uniform float cloud_top;
 
-vec4 cloud_sampling(vec3 v, vec4 color, float delta) {
+vec4 cloud_sampling(vec3 v, vec3 color, float delta) {
 	vec4 value = vec4(0.0);
+	value.rgb = color;
 
-	vec4 p = vec4(texture(perlin1, v.xyz / 50).b);
-	vec4 w = vec4(texture(worley, v.xyz / 150).r);
-	value = color * (p + 0.5) * (w - 0.3) * delta * 0.1;
-
-	//value += vec4(0.1, 0.1, 0.1, 1.0) * vec4(vec3(texture(perlin1, v.xyz / 50).a), 1.0) * delta / 2.0;
-	//value += vec4(0.1, 0.1, 0.11, 1.0) * vec4(vec3(texture(perlin1, v.xyz / 120).g), 1.0) * 0.07;
+	float p = texture(perlin1, v.xyz / 50).b;
+	float w = texture(worley, v.xyz / 150).r;
+	value.a = p * w * delta * 0.1;
 
 	return value;
 }
@@ -44,8 +42,8 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	float end = 1000.0;
 
 	vec4 value = vec4(0.0);
-	vec4 cloud_light = vec4(vec3(1.0), 1.0);
-	vec4 cloud_dark = vec4(vec3(0.95), 1.0);
+	vec3 cloud_light = vec3(1.0);
+	vec3 cloud_dark = vec3(0.95);
 
 	float length_inside = 0.0;
 	vec3 inside_start = vec3(0.0);
@@ -75,31 +73,33 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			was_inside = true;
 		}
 
-		// If we used to be inside but wasn't this iteration
+		// If we used to be inside but wasn't this iteration, we are outside
 		if (inside && !was_inside) {
-			inside_end = v;
 			inside = false;
+			inside_end = v;
 			length_inside += length(inside_end - inside_start);
+			break;
 		}
 
 		// Adaptive step length
 		delta = 0.005 * t;
 	}
 
-	length_inside = smoothstep(0, 400, length_inside);
-	value = mix(value, cloud_dark, length_inside);
-	//value = cloud_dark;
+	length_inside = smoothstep(00, 120, length_inside);
+	value.rgb = clamp(value.rgb, vec3(0.0), vec3(1.0));
+	value.rgb = mix(value.rgb, cloud_dark, length_inside);
+
 	return value;
 }
 
 vec4 cast_ray_cube(vec3 origin, vec3 dir) {
-	float delta = 0.7;
+	float delta = 0.3;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
 
 	vec4 value = vec4(0.0);
-	vec4 cloud_light = vec4(vec3(1.0), 1.0);
-	vec4 cloud_dark = vec4(vec3(0.95), 1.0);
+	vec3 cloud_light = vec3(1.0, 1.0, 1.0);
+	vec3 cloud_dark = vec3(0.1);
 
 	float length_inside = 0.0;
 	vec3 inside_start = vec3(0.0);
@@ -116,7 +116,7 @@ vec4 cast_ray_cube(vec3 origin, vec3 dir) {
 
 				vec4 color = cloud_sampling(v, cloud_light, delta);
 				value += color;
-
+				
 				// Set a limit for when we are inside a cloud
 				if (color.r > 0.0) {
 					if (!inside) {
@@ -128,19 +128,21 @@ vec4 cast_ray_cube(vec3 origin, vec3 dir) {
 			}
 		}
 
-		// If we used to be inside but wasn't this iteration
+		// If we used to be inside but wasn't this iteration, we are outside
 		if (inside && !was_inside) {
-			inside_end = v;
 			inside = false;
+			inside_end = v;
 			length_inside += length(inside_end - inside_start);
+			//break;
 		}
 
-		delta = 0.005 * t;
+		//delta = 0.05 * t;
 	}
 
-	length_inside = smoothstep(0, 40, length_inside);
-	value = mix(value, cloud_dark, length_inside);
-	//value = cloud_dark;
+	length_inside = smoothstep(10, 120, length_inside);
+	value.rgb = clamp(value.rgb, vec3(0.0), vec3(1.0));
+	value.rgb = mix(value.rgb, cloud_dark, length_inside);
+
 	return value;
 }
 
@@ -166,12 +168,11 @@ void main() {
 	//frag_color = diffuse_color;
 	//frag_color = diffuse_color + test;
 	frag_color.a = 1.0;
-	frag_color.rgb = diffuse_color.rgb * (1 - cloud_color.a) + cloud_color.rgb * cloud_color.a;
-	//frag_color.rgb = vec3(cloud_color.r);
+	frag_color.rgb = mix(diffuse_color.rgb, cloud_color.rgb, cloud_color.a);
 
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(perlin1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 3).r) * coverage, 1.0);
 	//vec3 p = vec3(texture(perlin1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.34) * 2).b);
 	//vec3 w = vec3(texture(worley, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.87) * 2).r);
-	//frag_color = vec4((p + 0.5) * (w - 0.3), 1.0);
+	//frag_color = vec4(p * w, 1.0);
 }
