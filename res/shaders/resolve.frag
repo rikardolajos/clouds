@@ -93,9 +93,9 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 }
 
 vec4 cast_ray_cube(vec3 origin, vec3 dir) {
-	float delta = 0.3;
+	float delta = 0.5;
 	float start = gl_DepthRange.near;
-	float end = 500.0;
+	float end = 400.0;
 
 	vec4 value = vec4(0.0);
 	vec3 cloud_light = vec3(1.0, 1.0, 1.0);
@@ -107,8 +107,9 @@ vec4 cast_ray_cube(vec3 origin, vec3 dir) {
 	bool inside = false;
 	bool was_inside = false;
 
+	vec3 v = vec3(0.0);
 	for (float t = start; t < end; t += delta) {
-		vec3 v = origin + dir * t;
+		v = origin + dir * t;
 		was_inside = false;
 
 		if (v.y > 50 && v.y < 100) {
@@ -136,11 +137,17 @@ vec4 cast_ray_cube(vec3 origin, vec3 dir) {
 			//break;
 		}
 
-		//delta = 0.05 * t;
+		//delta = 0.005 * t;
 	}
 
-	length_inside = smoothstep(10, 120, length_inside);
-	value.rgb = clamp(value.rgb, vec3(0.0), vec3(1.0));
+	// If we reached last step before exiting a cloud
+	if (inside) {
+		inside_end = v;
+		length_inside += length(inside_end - inside_start);
+	}
+
+	length_inside = smoothstep(10, 200, length_inside);
+	value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));
 	value.rgb = mix(value.rgb, cloud_dark, length_inside);
 
 	return value;
@@ -169,6 +176,7 @@ void main() {
 	//frag_color = diffuse_color + test;
 	frag_color.a = 1.0;
 	frag_color.rgb = mix(diffuse_color.rgb, cloud_color.rgb, cloud_color.a);
+	//frag_color.rgb = vec3(cloud_color.r);
 
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(perlin1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 3).r) * coverage, 1.0);
