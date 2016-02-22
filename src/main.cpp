@@ -21,7 +21,7 @@
 #define OPENGL_MINOR_VERSION 5
 
 #define FULLSCREEN 0
-#define VERTICAL_SYNC 1
+#define VERTICAL_SYNC 0
 
 #define CLOUD_BASE 100.0f
 #define CLOUD_TOP 400.0f
@@ -166,9 +166,9 @@ int main(int argc, char** argv)
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
-	log("Loading Worley noise texture...\n");
-	Texture worley_texture;
-	if (texture3D_from_ex5(&worley_texture, "./res/textures/worley.ex5") != 0) {
+	log("Loading 3D texture 1...\n");
+	Texture TD1_texture;
+	if (texture3D_from_ex5(&TD1_texture, "./res/textures/3D_texture_1.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
@@ -253,16 +253,13 @@ int main(int argc, char** argv)
 
 		shader_uniform_vec2(resolve_shader, glm::vec2(SCREEN_WIDTH, SCREEN_HEIGHT), "view_port");
 		shader_uniform_vec3(resolve_shader, camera.position, "camera_pos");
-		shader_uniform_vec3(resolve_shader, camera.front, "camera_front");
-		shader_uniform_vec3(resolve_shader, camera.up, "camera_up");
-		shader_uniform_1f(resolve_shader, CLOUD_BASE, "cloud_base");
-		shader_uniform_1f(resolve_shader, CLOUD_TOP, "cloud_top");
+		shader_uniform_vec3(sky_shader, sun.position, "sun_pos");
 
 		/* Send textures to shaders */
 		shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
 		shader_send_texture2D(resolve_shader, terrain_texture, "terrain_texture");
 		shader_send_texture3D(resolve_shader, perlin1_texture, "perlin1");
-		shader_send_texture3D(resolve_shader, worley_texture, "worley");
+		shader_send_texture3D(resolve_shader, TD1_texture, "td1");
 
 		/* OpenGL rendering */
 		fs_quad_set_as_render_target(fs_quad);
