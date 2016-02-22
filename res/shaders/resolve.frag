@@ -6,7 +6,7 @@ out vec4 frag_color;
 
 /////////////////////////////////
 uniform sampler3D perlin1;
-uniform sampler3D worley;
+uniform sampler3D td1;
 uniform sampler2D terrain_texture;
 /////////////////////////////////
 
@@ -22,18 +22,17 @@ uniform mat4 proj;
 
 float cloud_sampling(vec3 v, float delta) {
 
-	float coverage = smoothstep(0.2, 0.3, pow(texture(perlin1, vec3(v.xz / 500, 0.3)).a, 2.5));
-	float height = smoothstep(50, 65, v.y) - smoothstep(80, 110, v.y);
+	vec4 texture = texture(td1, v / 150);
 
-	float p = texture(perlin1, v.xyz / 50).b;
-	float w = texture(worley, v.xyz / 100).r;
+	float coverage = smoothstep(0.2, 0.3, pow(texture.r, 2.2));
+	float height = smoothstep(50, 65, v.y) - smoothstep(65, 100, v.y);
 
-	return p * w * coverage * height * delta * 0.1;
+	return texture.r * coverage * height * delta * 0.1;
 }
 
 float cast_shadow_ray(vec3 origin, vec3 dir) {
 	float delta = 1.0;
-	float end = 50;
+	float end = 50.0;
 
 	vec3 sample_point = vec3(0.0);
 	float shadowness = 0.0;
@@ -43,25 +42,24 @@ float cast_shadow_ray(vec3 origin, vec3 dir) {
 		shadowness += cloud_sampling(sample_point, delta);
 	}
 
-	return smoothstep(0, 5, shadowness);
+	return smoothstep(0, 10, shadowness);
 }	
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta = 2.0;
+	float delta = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
 
 	vec4 value = vec4(0.0);
 	vec3 cloud_color = vec3(0.98);
-	vec3 cloud_shade = vec3(0.3, 0.3, 0.32);
-	vec3 cloud_dense = vec3(0.9, 0.9, 0.9);
+	vec3 cloud_shade = vec3(0.84, 0.84, 0.85);
+	vec3 cloud_dense = vec3(0.93, 0.93, 0.95);
 	value.rgb = cloud_color;
 
-	//////////
+	/* Test colors */
 	cloud_shade = vec3(1.0, 0.0, 1.0);
 	//cloud_dense = vec3(0.0, 1.0, 0.0);
-	//////////
 
 	float length_inside = 0.0;
 	vec3 first_contact = vec3(0.0);
@@ -100,7 +98,6 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 					inside_once = true;
 					first_contact = sample_point;
 				}
-				
 			}
 
 			inside_last_iteration = true;
@@ -110,25 +107,28 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		if (inside && !inside_last_iteration) {
 			inside = false;
 			inside_end = sample_point;
-			length_inside += length(inside_end - inside_start);
+			length_inside += length(inside_end - inside_start) * value.a;
+			if (value.a > 1.0) {
+				//break;
+			}
 		}
 
 		/* Adaptive step length */
-		//delta = 0.04 * t;
+		delta = 0.02 * t;
 	}
 
 	/* If we reached last step before exiting a cloud */
 	if (inside) {
 		inside_end = sample_point;
-		length_inside += length(inside_end - inside_start);
+		length_inside += length(inside_end - inside_start) * value.a;
 	}
 
 	/* Apply shadow by sampling ray from first contact point to the sun */
-	float shade = cast_shadow_ray(inside_start, normalize(sun_pos - first_contact));
+	float shade = cast_shadow_ray(first_contact, -normalize(sun_pos - first_contact)) * value.a;
 
-	length_inside = smoothstep(10, 20, length_inside);
+	length_inside = smoothstep(0, 300, length_inside);
 	value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));
-	//value.rgb = mix(value.rgb, cloud_dense, length_inside);
+	value.rgb = mix(value.rgb, cloud_dense, length_inside);
 	//value.rgb = mix(value.rgb, cloud_shade, shade);
 
 	return value;
@@ -158,6 +158,6 @@ void main() {
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	//vec3 p = vec3(texture(perlin1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.32) * 2).b);
-	//vec3 w = vec3(texture(worley, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.87) * 2).r);
+	//vec3 w = vec3(texture(td1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.0) * 2).a);
 	//frag_color = vec4(w , 1.0);
 }
