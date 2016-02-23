@@ -5,7 +5,7 @@
 #include "SDL.h"
 
 #define CAMERA_NEAR 0.1f
-#define CAMERA_FAR 1000.0f
+#define CAMERA_FAR 2000.0f
 #define CAMERA_FOV 60.0f
 
 typedef struct Camera Camera;
