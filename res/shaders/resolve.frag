@@ -26,18 +26,32 @@ float height_stratus(float y) {
 	return smoothstep(bottom, bottom + 60, y) - smoothstep(top - 20, top, y);
 }
 
-float cloud_sampling(vec3 v, float delta) {
+float coverage(float t) {
+	return smoothstep(0.300, 0.305, pow(t, 2.0));
+}
+
+float cloud_sampling_lowres(vec3 v, float delta) {
 
 	vec4 texture = texture(td1, v / 300);
 
-	float coverage = smoothstep(0.3, 0.301, pow(texture.g, 2.0));
+	float coverage = coverage(texture.r);
 	float height = height_stratus(v.y);
 
 	return texture.r * coverage * height * delta * 0.1;
 }
 
+float cloud_sampling(vec3 v, float delta) {
+
+	vec4 texture = texture(td1, v / 300);
+
+	float coverage = coverage(texture.r);
+	float height = height_stratus(v.y);
+
+	return texture.b * coverage * height * delta * 0.1;
+}
+
 float cast_shadow_ray(vec3 origin, vec3 dir) {
-	float delta = 10.0;
+	float delta = 5.0;
 	float end = 50.0;
 
 	vec3 sample_point = vec3(0.0);
@@ -53,13 +67,14 @@ float cast_shadow_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta = 1.0;
+	float delta_large = 20.0;
+	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
 
 	vec4 value = vec4(0.0);
 	vec3 cloud_color = vec3(0.93, 0.93, 0.95);
-	vec3 cloud_shade = vec3(0.82, 0.82, 0.9) - 0.2;
+	vec3 cloud_shade = vec3(0.859, 0.847, 0.757) - 0.2;
 	vec3 cloud_dense = vec3(0.98);
 	value.rgb = cloud_color;
 
@@ -76,6 +91,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 	vec3 sample_point = vec3(0.0);
 
+	float delta = delta_large;
 	for (float t = start; t < end; t += delta) {
 		sample_point = origin + dir * t;
 
@@ -88,7 +104,12 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		sample_point.y += 0.1 * t; 
 
 		inside_last_iteration = false;
-		float alpha = cloud_sampling(sample_point, delta);
+		float alpha;
+		if (!inside) {
+			alpha = cloud_sampling_lowres(sample_point, delta);
+		} else {
+			alpha = cloud_sampling(sample_point, delta);
+		}
 
 		if (alpha > 0.00) {
 			
@@ -98,6 +119,10 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			if (!inside) {
 				inside = true;
 				inside_start = sample_point;
+
+				/* Step backwards once before sampling with high res */
+				sample_point = sample_point - dir * delta_large;
+				delta = delta_small;
 
 				if (!inside_once) {
 					inside_once = true;
@@ -112,8 +137,11 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			inside = false;
 			inside_end = sample_point;
 			length_inside += length(inside_end - inside_start) * value.a;
+
+			delta = delta_large;
+
 			if (value.a > 1.0) {
-				//break;
+				break;
 			}
 		}
 
@@ -166,6 +194,6 @@ void main() {
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	//vec3 p = vec3(texture(perlin1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.32) * 2).b);
-	vec3 w = vec3(texture(td1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.0) * 2).r);
+	//vec3 w = vec3(texture(td1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.0) * 2).r);
 	//frag_color = vec4(w , 1.0);
 }
