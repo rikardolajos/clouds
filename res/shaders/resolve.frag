@@ -37,7 +37,7 @@ float cloud_sampling_lowres(vec3 v, float delta) {
 	float coverage = coverage(texture.r);
 	float height = height_stratus(v.y);
 
-	return texture.r * coverage * height * delta * 0.1;
+	return texture.r * coverage * height * delta * 0.5;
 }
 
 float cloud_sampling(vec3 v, float delta) {
@@ -47,7 +47,7 @@ float cloud_sampling(vec3 v, float delta) {
 	float coverage = coverage(texture.r);
 	float height = height_stratus(v.y);
 
-	return texture.b * coverage * height * delta * 0.1;
+	return texture.r * coverage * height * delta * 0.1;
 }
 
 float cast_shadow_ray(vec3 origin, vec3 dir) {
@@ -67,8 +67,8 @@ float cast_shadow_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 20.0;
-	float delta_small = 1.0;
+	float delta_large = 15.0;
+	float delta_small = 5.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
 
@@ -86,22 +86,26 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	vec3 inside_start = vec3(0.0);
 	vec3 inside_end = vec3(0.0);
 	bool inside = false;
-	bool inside_once = false;
 	bool inside_last_iteration = false;
-
+	int points_outside = 0;
 	vec3 sample_point = vec3(0.0);
 
 	float delta = delta_large;
 	for (float t = start; t < end; t += delta) {
 		sample_point = origin + dir * t;
 
-		/* Don't continue after passing a lot of clouds */
-		if (!inside && inside_once && length_inside > 100) {
-			//break; // This is stupid and doesn't work!
+		/* Stop rays that are going below ground */
+		if (sample_point.y < 0.0) {
+			break;
 		}
 
+		/* Don't continue after passing a lot of clouds */
+		//if (!inside && inside_once && length_inside > 100) {
+			//break; // This is stupid and doesn't work!
+		//}
+
 		/* Pull down the horizon to get a better looking sky */
-		sample_point.y += 0.1 * t; 
+		//sample_point.y += 0.1 * t; 
 
 		inside_last_iteration = false;
 		float alpha;
@@ -114,6 +118,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		if (alpha > 0.00) {
 			
 			value.a += alpha;
+			points_outside = 0;
 
 			/* Set start point of new inside episode */
 			if (!inside) {
@@ -123,17 +128,16 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 				/* Step backwards once before sampling with high res */
 				sample_point = sample_point - dir * delta_large;
 				delta = delta_small;
-
-				if (!inside_once) {
-					inside_once = true;
-				}
 			}
 
 			inside_last_iteration = true;
+		} else {
+			points_outside += 1;
 		}
 
 		/* If we used to be inside but wasn't this iteration, we are outside */
-		if (inside && !inside_last_iteration) {
+		//if (inside && !inside_last_iteration) {
+		if (inside && points_outside > 20) {
 			inside = false;
 			inside_end = sample_point;
 			length_inside += length(inside_end - inside_start) * value.a;
@@ -147,7 +151,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 		/* Calculate the shadows */
 		float shade = cast_shadow_ray(sample_point, normalize(sun_pos - sample_point));
-		value.rgb = mix(value.rgb, cloud_shade, shade);
+		//value.rgb = mix(value.rgb, cloud_shade, shade);
 
 		/* Adaptive step length */
 		//delta = 0.02 * t;
