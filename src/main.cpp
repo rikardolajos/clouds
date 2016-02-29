@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <chrono>
+
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 5
 
@@ -176,19 +178,19 @@ int main(int argc, char** argv)
 	log("\nStarting main loop.\n\n");
 	bool exit = false;
 	float delta_time = 0.0f;
-	float last_frame = 0.0f;
+	auto last_frame = std::chrono::high_resolution_clock::now();
 	float avrage_timer = 0.0f;
 
 	while (!exit) {
 		/* Frame time calculation */
-		float current_time = SDL_GetTicks();
-		delta_time = current_time - last_frame;
+		auto current_time = std::chrono::high_resolution_clock::now();
+		delta_time = std::chrono::duration_cast<std::chrono::microseconds>(current_time - last_frame).count() / 1000.0;
 		last_frame = current_time;
 		avrage_timer += delta_time;
 
 		if (avrage_timer > 1000) {
 			char title[128];
-			sprintf(title, "Clouds -- Frame time: %.0f ms, FPS: %.1f", delta_time, 1000.0 / delta_time);
+			sprintf(title, "Clouds -- Frame time: %.1f ms, FPS: %.0f", delta_time, 1000.0 / delta_time);
 			SDL_SetWindowTitle(window, title);
 			avrage_timer = 0;
 		}
