@@ -67,8 +67,8 @@ float cast_shadow_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 15.0;
-	float delta_small = 5.0;
+	float delta_large = 1.0;
+	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
 
@@ -79,8 +79,10 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	value.rgb = cloud_color;
 
 	/* Test colors */
+	cloud_color = vec3(1.0, 0.5, 0.0);
 	//cloud_shade = vec3(1.0, 0.0, 1.0);
 	//cloud_dense = vec3(0.0, 1.0, 0.0);
+	value.rgb = cloud_color;
 
 	float length_inside = 0.0;
 	vec3 inside_start = vec3(0.0);
@@ -99,10 +101,10 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			break;
 		}
 
-		/* Don't continue after passing a lot of clouds */
-		//if (!inside && inside_once && length_inside > 100) {
-			//break; // This is stupid and doesn't work!
-		//}
+		/* Don't start new clouds if we are close to the top */
+		if (inside && points_outside > 20 && sample_point.y > 100) {
+			break;
+		}
 
 		/* Pull down the horizon to get a better looking sky */
 		//sample_point.y += 0.1 * t; 
@@ -163,9 +165,6 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		length_inside += length(inside_end - inside_start) * value.a;
 	}
 
-	/* Apply shadow by sampling ray from first contact point to the sun */
-	//float shade = cast_shadow_ray(first_contact, -normalize(sun_pos - first_contact)) * value.a;
-
 	length_inside = smoothstep(50, 500, length_inside);
 	value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));
 	//value.rgb = mix(value.rgb, cloud_dense, length_inside);
@@ -197,7 +196,6 @@ void main() {
 
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
-	//vec3 p = vec3(texture(perlin1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.32) * 2).b);
-	//vec3 w = vec3(texture(td1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.0) * 2).r);
-	//frag_color = vec4(w , 1.0);
+	vec3 w = vec3(texture(td1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.0) * 5).r);
+	frag_color = vec4(w , 1.0);
 }
