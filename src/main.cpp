@@ -7,6 +7,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "camera.h"
+#include "cloud_preprocess.h"
 #include "fullscreen_quad.h"
 #include "log.h"
 #include "model.h"
@@ -173,6 +174,13 @@ int main(int argc, char** argv)
 	if (texture3D_from_ex5(&TD1_texture, "./res/textures/3D_texture_1.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
+
+	/* Preprocess the structure of the clouds */
+	log("\nPreprocessing cloud structure...\n");
+	Texture cloud_structure_texture;
+	cloud_preprocess(&cloud_structure_texture, TD1_texture);
+	
+	
 
 	/* Main loop */
 	log("\nStarting main loop.\n\n");
