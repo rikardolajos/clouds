@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\camera.cpp" />
+    <ClCompile Include="src\cloud_preprocess.cpp" />
     <ClCompile Include="src\fullscreen_quad.cpp" />
     <ClCompile Include="src\log.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -104,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera.h" />
+    <ClInclude Include="src\cloud_preprocess.h" />
     <ClInclude Include="src\fullscreen_quad.h" />
     <ClInclude Include="src\log.h" />
     <ClInclude Include="src\model.h" />
