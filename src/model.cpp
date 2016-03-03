@@ -205,6 +205,13 @@ int model_load_obj(Model* m, const char* file_path)
 	m->rotation = glm::vec3(0.0f);
 	m->scale = glm::vec3(1.0f);
 
+	free(vertices);
+	free(normals);
+	free(texture_coordinates);
+	free(vertex_buffer);
+	free(normals_buffer);
+	free(texture_buffer);
+
 	return 0;
 }
 
