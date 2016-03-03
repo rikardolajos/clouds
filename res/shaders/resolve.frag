@@ -5,10 +5,12 @@ layout(location = 0) in vec3 vertex_pos;
 out vec4 frag_color;
 
 /////////////////////////////////
-uniform sampler3D perlin1;
-uniform sampler3D td1;
-uniform sampler2D terrain_texture;
+//uniform sampler3D perlin1;
+//uniform sampler2D terrain_texture;
 /////////////////////////////////
+
+uniform sampler3D td1;
+uniform sampler3D cloud_structure;
 
 uniform sampler2D diffuse_buffer;
 uniform sampler2D depth_buffer;
@@ -79,7 +81,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	value.rgb = cloud_color;
 
 	/* Test colors */
-	cloud_color = vec3(1.0, 0.5, 0.0);
+	//cloud_color = vec3(1.0, 0.5, 0.0);
 	//cloud_shade = vec3(1.0, 0.0, 1.0);
 	//cloud_dense = vec3(0.0, 1.0, 0.0);
 	value.rgb = cloud_color;
@@ -196,6 +198,6 @@ void main() {
 
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
-	vec3 w = vec3(texture(td1, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.0) * 5).r);
+	vec3 w = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.25) * 1).r);
 	frag_color = vec4(w , 1.0);
 }
