@@ -11,6 +11,10 @@
 
 static int active_textures = 2;		/* The fullscreen-quad uses two textures */
 
+void texture_activate(Texture* t)
+{
+	t->index = active_textures++;
+}
 
 int texture2D_from_ex5(Texture* t, const char* file_path)
 {
