@@ -27,13 +27,12 @@ int texture2D_from_ex5(Texture* t, const char* file_path)
 	fscanf(fp, "%d", &t->height);
 
 	/* Create image */
-	uint8_t* data = (uint8_t*)calloc(t->width * t->height * 4, sizeof data);
+	uint8_t* data = (uint8_t*)calloc(t->width * t->height * 4, sizeof *data);
 
 	/* Read image*/
 	int i = 0;
-	while (!feof(fp)) {
-		uint32_t pixel;
-		fscanf(fp, "%d", &pixel);
+	uint32_t pixel;
+	while (fscanf(fp, "%d", &pixel) == 1) {
 		data[i++] = pixel >> 24;
 		data[i++] = pixel >> 16;
 		data[i++] = pixel >> 8;
@@ -49,6 +48,8 @@ int texture2D_from_ex5(Texture* t, const char* file_path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	free(data);
 
 	return 0;
 }
@@ -69,13 +70,12 @@ int texture3D_from_ex5(Texture* t, const char* file_path)
 	fscanf(fp, "%d", &t->depth);
 
 	/* Create image */
-	uint8_t* data = (uint8_t*)calloc(t->width * t->height * t->depth * 4, sizeof data);
+	uint8_t* data = (uint8_t*)calloc(t->width * t->height * t->depth * 4, sizeof *data);
 
 	/* Read image*/
 	int i = 0;
-	while (!feof(fp)) {
-		uint32_t pixel;
-		fscanf(fp, "%d", &pixel);
+	uint32_t pixel;
+	while (fscanf(fp, "%d", &pixel) == 1) {
 		data[i++] = pixel >> 24;
 		data[i++] = pixel >> 16;
 		data[i++] = pixel >> 8;
@@ -92,6 +92,8 @@ int texture3D_from_ex5(Texture* t, const char* file_path)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+	free(data);
 
 	return 0;
 }
