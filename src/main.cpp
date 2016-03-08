@@ -169,16 +169,16 @@ int main(int argc, char** argv)
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
-	log("Loading 3D texture 1...\n");
-	Texture TD1_texture;
-	if (texture3D_from_ex5(&TD1_texture, "./res/textures/3D_texture_1.ex5") != 0) {
+	log("Loading 3D cloud texture...\n");
+	Texture cloud_texture;
+	if (texture3D_from_ex5(&cloud_texture, "./res/textures/3D_texture_2.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
 	/* Preprocess the structure of the clouds */
 	log("\nPreprocessing cloud structure...\n");
 	Texture cloud_structure_texture;
-	cloud_preprocess(&cloud_structure_texture, TD1_texture);
+	cloud_preprocess(&cloud_structure_texture, cloud_texture);
 	
 	
 
@@ -198,7 +198,7 @@ int main(int argc, char** argv)
 
 		if (avrage_timer > 1000) {
 			char title[128];
-			sprintf(title, "Clouds -- Frame time: %.1f ms, FPS: %.0f", delta_time, 1000.0 / delta_time);
+			sprintf(title, "Clouds -- Frame time: %.2f ms, FPS: %.0f", delta_time, 1000.0 / delta_time);
 			SDL_SetWindowTitle(window, title);
 			avrage_timer = 0;
 		}
@@ -237,6 +237,7 @@ int main(int argc, char** argv)
 
 		///////////////////////////////////////////////////// http://advances.realtimerendering.com/s2015/The%20Real-time%20Volumetric%20Cloudscapes%20of%20Horizon%20-%20Zero%20Dawn%20-%20ARTR.pdf
 		///////////////////////////////////////////////////// http://freespace.virgin.net/hugo.elias/models/m_clouds.htm
+		///////////////////////////////////////////////////// http://www.neilblevins.com/cg_education/procedural_noise/procedural_noise.html
 
 		/* Camera movement */
 		camera_movement(&camera, delta_time);
@@ -267,9 +268,10 @@ int main(int argc, char** argv)
 
 		/* Send textures to shaders */
 		shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
-		shader_send_texture2D(resolve_shader, terrain_texture, "terrain_texture");
-		shader_send_texture3D(resolve_shader, perlin1_texture, "perlin1");
-		shader_send_texture3D(resolve_shader, TD1_texture, "td1");
+		//shader_send_texture2D(resolve_shader, terrain_texture, "terrain_texture");
+		//shader_send_texture3D(resolve_shader, perlin1_texture, "perlin1");
+		shader_send_texture3D(resolve_shader, cloud_texture, "cloud_texture");
+		shader_send_texture3D(resolve_shader, cloud_structure_texture, "cloud_structure");
 
 		/* OpenGL rendering */
 		fs_quad_set_as_render_target(fs_quad);
