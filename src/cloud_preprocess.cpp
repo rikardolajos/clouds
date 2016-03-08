@@ -1,5 +1,7 @@
 #include "cloud_preprocess.h"
 
+#include "glm/glm.hpp"
+
 #include "texture.h"
 
 #include <math.h>
@@ -9,8 +11,8 @@
 /* 1 = inside cloud, else 0 */
 GLubyte structure(GLubyte pixel)
 {
-	GLubyte value = pixel;
-	if (value > 180) {
+	//return glm::smoothstep(0.45, 0.65, pixel / 255.0);
+	if (pixel / 255.0 > 0.62) {
 		return 1;
 	}
 	return 0;
@@ -30,7 +32,7 @@ int cloud_preprocess(Texture* cloud_structure, Texture source)
 
 	/* Process the cloud structure */
 	GLubyte* temp = (GLubyte*)malloc(source.width * source.height * source.depth * sizeof(GLubyte));
-	for (int i = 0; i < source.width * source.height * source.depth; i += 4) {
+	for (int i = 0; i < source.width * source.height * source.depth; i++) {
 		temp[i] = structure(cloud_pixels[i * 4]);
 	}
 
@@ -58,7 +60,7 @@ int cloud_preprocess(Texture* cloud_structure, Texture source)
 					}
 				}
 
-				if (inside == 0) {
+				if (inside < 8) {
 					new_structure[i + j * cloud_structure->height + k * cloud_structure->height * cloud_structure->depth] = 0;
 				} else {
 					new_structure[i + j * cloud_structure->height + k * cloud_structure->height * cloud_structure->depth] = 255;
@@ -77,8 +79,8 @@ int cloud_preprocess(Texture* cloud_structure, Texture source)
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, cloud_structure->width, cloud_structure->height, cloud_structure->depth, 0, GL_RED, GL_UNSIGNED_BYTE, new_structure);
 	glGenerateMipmap(GL_TEXTURE_3D);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
