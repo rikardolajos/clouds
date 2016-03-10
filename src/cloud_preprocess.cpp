@@ -12,7 +12,7 @@
 GLubyte structure(GLubyte pixel)
 {
 	//return glm::smoothstep(0.45, 0.65, pixel / 255.0);
-	if (pixel / 255.0 > 0.62) {
+	if (pixel / 255.0 > 0.5) {
 		return 1;
 	}
 	return 0;
