@@ -36,7 +36,7 @@ float height_stratus(float y) {
 
 float coverage(float t) {
 	/* The lower level must be same as the value in the preprocessors structure function */
-	return smoothstep(0.62, 0.75, t); 
+	return smoothstep(0.5, 0.6, t); 
 }
 
 float cloud_sampling_lowres(vec3 v, float delta) {
@@ -49,12 +49,12 @@ float cloud_sampling_lowres(vec3 v, float delta) {
 
 float cloud_sampling(vec3 v, float delta) {
 
-	vec4 texture = texture(cloud_texture, v / 100);
+	vec4 texture = texture(cloud_texture, v / 200);
 
 	float coverage = coverage(texture.r);
 	float height = height_stratus(v.y);
 
-	return texture.g * coverage * height * delta * 0.1;
+	return texture.r * coverage * height * delta * 0.7;
 }
 
 float cast_shadow_ray(vec3 origin, vec3 dir) {
@@ -74,7 +74,7 @@ float cast_shadow_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 1.0;
+	float delta_large = 10.0;
 	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
@@ -119,55 +119,48 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		//}
 
 		/* Pull down the horizon to get a better looking sky */
-		//sample_point.y += 0.1 * t; 
+		sample_point.y += 0.1 * t; 
 
-		inside_last_iteration = false;
 		float alpha;
 		if (!inside) {
 			alpha = cloud_sampling_lowres(sample_point, delta);
-		} else {
-			alpha = cloud_sampling(sample_point, delta);
+			if (alpha > 0.0) {
+				inside = true;
+			} else {
+				inside_last_iteration = false;
+			}
 		}
 
-		if (alpha > 0.0) {
-			
+		if (inside) {
+			if (!inside_last_iteration) {
+				sample_point = origin - dir * delta;
+				delta = delta_small;
+				inside_start = sample_point;
+			}
+			alpha = cloud_sampling(sample_point, delta);
 			value.a += alpha;
 			points_inside += 1;
-
-			/* Set start point of new inside episode */
-			if (!inside) {
-				inside = true;
-				inside_start = sample_point;
-
-				/* Step backwards once before sampling with high res */
-				sample_point = sample_point - dir * delta_large;
-				delta = delta_small;
-			}
-
 			inside_last_iteration = true;
-		} else {
-			if (delta_small * points_inside > delta_large) {
-				float t = cloud_sampling_lowres(sample_point, delta);
-				if (t > 0.0) {
-					/* Still inside */
-					points_inside = 0;
-				} else {
-					/* Outside */
-					delta = delta_large;
-					inside = false;
-				}
+		}
+
+		/* Check next structure block */
+		if (points_inside * delta_small > delta_large) {
+			alpha = cloud_sampling_lowres(sample_point, delta);
+			if (!(alpha > 0.0)) {
+				inside = false;
 			}
 		}
 
+
 		/* Calculate the shadows */
-		float shade = cast_shadow_ray(sample_point, normalize(sun_pos - sample_point));
+		//float shade = cast_shadow_ray(sample_point, normalize(sun_pos - sample_point));
 		//value.rgb = mix(value.rgb, cloud_shade, shade);
 
 		/* Adaptive step length */
-		//delta = 0.02 * t;
+		//delta_small = 0.02 * t;
 	}
 
-	/* If we reached last step before exiting a cloud */
+	/* If we reached last step before exiting a cloud, we need to close off the sampling */
 	if (inside) {
 		inside_end = sample_point;
 		length_inside += length(inside_end - inside_start) * value.a;
