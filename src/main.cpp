@@ -238,11 +238,14 @@ int main(int argc, char** argv)
 		///////////////////////////////////////////////////// http://advances.realtimerendering.com/s2015/The%20Real-time%20Volumetric%20Cloudscapes%20of%20Horizon%20-%20Zero%20Dawn%20-%20ARTR.pdf
 		///////////////////////////////////////////////////// http://freespace.virgin.net/hugo.elias/models/m_clouds.htm
 		///////////////////////////////////////////////////// http://www.neilblevins.com/cg_education/procedural_noise/procedural_noise.html
+		///////////////////////////////////////////////////// http://wiki.nuaj.net/index.php?title=Clouds
+		///////////////////////////////////////////////////// http://www-evasion.imag.fr/Publications/2006/BNL06/
+		///////////////////////////////////////////////////// 
 
 		/* Camera movement */
 		camera_movement(&camera, delta_time);
 		sky_model.position = camera.position;
-		sun.position = camera.position + glm::vec3(1.0f, 1.0f, 1.0f);
+		sun.position = camera.position + glm::vec3(1000.0f, 1000.0f, 1000.0f);
 
 		/* Calculate view and projection matrices and send them to shaders */
 		shader_uniform_mat4(terrain_shader, model_model_matrix(terrain_model), "model");
@@ -264,7 +267,7 @@ int main(int argc, char** argv)
 
 		shader_uniform_vec2(resolve_shader, glm::vec2(SCREEN_WIDTH, SCREEN_HEIGHT), "view_port");
 		shader_uniform_vec3(resolve_shader, camera.position, "camera_pos");
-		shader_uniform_vec3(sky_shader, sun.position, "sun_pos");
+		shader_uniform_vec3(resolve_shader, sun.position, "sun_pos");
 
 		/* Send textures to shaders */
 		shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");

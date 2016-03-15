@@ -34,7 +34,7 @@ float height_stratus(float y) {
 	return smoothstep(bottom, bottom + 60, y) - smoothstep(top - 20, top, y);
 }
 
-float coverage(float t) {
+float coverage(float t, float y) {
 	/* The lower level must be same as the value in the preprocessors structure function */
 	return smoothstep(0.63, 0.65, t); 
 }
@@ -51,7 +51,7 @@ float cloud_sampling(vec3 v, float delta) {
 
 	vec4 texture = texture(cloud_texture, v / 800);
 
-	float coverage = coverage(texture.r);
+	float coverage = coverage(texture.r, v.y);
 	float height = height_stratus(v.y);
 
 	return texture.a * coverage * height * delta * 0.4;
@@ -81,13 +81,13 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 	vec4 value = vec4(0.0);
 	vec3 cloud_color = vec3(0.93, 0.93, 0.95);
-	vec3 cloud_shade = vec3(0.859, 0.847, 0.757) - 0.2;
+	vec3 cloud_shade = vec3(0.859, 0.847, 0.757) - 0.1;
 	vec3 cloud_dense = vec3(0.98);
 	value.rgb = cloud_color;
 
 	/* Test colors */
 	//cloud_color = vec3(1.0, 0.5, 0.0);
-	cloud_shade = vec3(1.0, 0.0, 1.0);
+	//cloud_shade = vec3(1.0, 0.0, 1.0);
 	//cloud_dense = vec3(0.0, 1.0, 0.0);
 	value.rgb = cloud_color;
 
@@ -95,7 +95,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	vec3 inside_start = vec3(0.0);
 	vec3 inside_end = vec3(0.0);
 	bool inside = false;
-	bool inside_last_iteration = false;
+	bool looking_for_new_start = true;
 	int points_inside = 0;
 	vec3 sample_point = vec3(0.0);
 
@@ -127,35 +127,42 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			if (alpha > 0.0) {
 				inside = true;
 			} else {
-				inside_last_iteration = false;
+				looking_for_new_start = true;
 			}
 		}
 
 		if (inside) {
-			if (!inside_last_iteration) {
+			/* Start of a new inside session? */
+			if (looking_for_new_start) {
 				/* Move the starting point a large delta backwards */
-				sample_point = origin - dir * delta_large;
+				sample_point = sample_point - dir * 0;
 				delta = delta_small;
 				inside_start = sample_point;
+				looking_for_new_start = false;
 			}
 			alpha = cloud_sampling(sample_point, delta); /* Comment this line to see cloud structure */
 			value.a += alpha;
 			points_inside += 1;
-			inside_last_iteration = true;
 		}
 
-		/* Check next structure block */
-		if (points_inside * delta_small > delta_large) {
+		/* Check next structure block if we are still inside */
+		if (inside && points_inside * delta_small > delta_large) {
 			alpha = cloud_sampling_lowres(sample_point, delta);
 			if (!(alpha > 0.0)) {
 				inside = false;
+				looking_for_new_start = true;
+				inside_end = sample_point;
+				length_inside += length(inside_end - inside_start) * value.a;
+				delta = delta_large;
+			} else {
+				points_inside = 0;
 			}
 		}
 
 
 		/* Calculate the shadows */
 		float shade = cast_shadow_ray(sample_point, normalize(sun_pos - sample_point));
-		//value.rgb = mix(value.rgb, cloud_shade, shade);
+		value.rgb = mix(value.rgb, cloud_shade, shade);
 
 		/* Adaptive step length */
 		//delta_small = 0.02 * t;
@@ -200,6 +207,6 @@ void main() {
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
 	vec3 t = vec3(texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	t = vec3(coverage(t.r));
-	//frag_color = vec4(s, 1.0);
+	t = vec3(coverage(t.r, 0.0));
+	//frag_color = vec4(t, 1.0);
 }
