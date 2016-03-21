@@ -22,15 +22,12 @@ uniform vec3 sun_pos;
 uniform mat4 view;
 uniform mat4 proj;
 
-float height_stratus_lowres(float y) {
+float height_stratus(float y, bool low_res) {
 	float bottom = 50;
 	float top = 200;
-	return step(bottom, y) - step(top, y);
-}
-
-float height_stratus(float y) {
-	float bottom = 50;
-	float top = 200;
+	if (low_res) {
+		return step(bottom, y) - step(top, y);
+	}
 	return smoothstep(bottom, bottom + 60, y) - smoothstep(top - 20, top, y);
 }
 
@@ -40,9 +37,11 @@ float coverage(float t, float y) {
 }
 
 float cloud_sampling_lowres(vec3 v, float delta) {
+	/* Snap the coordinate to the centre of the closest structure cube */
+
 
 	vec4 texture = texture(cloud_structure, v / 800);
-	float height = height_stratus_lowres(v.y);
+	float height = height_stratus(v.y, true);
 
 	return texture.r * height;
 }
@@ -52,7 +51,7 @@ float cloud_sampling(vec3 v, float delta) {
 	vec4 texture = texture(cloud_texture, v / 800);
 
 	float coverage = coverage(texture.r, v.y);
-	float height = height_stratus(v.y);
+	float height = height_stratus(v.y, false);
 
 	return texture.a * coverage * height * delta * 0.4;
 }
@@ -82,7 +81,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	vec4 value = vec4(0.0);
 	vec3 cloud_color = vec3(0.93, 0.93, 0.95);
 	vec3 cloud_shade = vec3(0.859, 0.847, 0.757) - 0.1;
-	vec3 cloud_dense = vec3(0.98);
+	//vec3 cloud_dense = vec3(0.98);
 	value.rgb = cloud_color;
 
 	/* Test colors */
@@ -92,12 +91,12 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	value.rgb = cloud_color;
 
 	float length_inside = 0.0;
-	vec3 inside_start = vec3(0.0);
-	vec3 inside_end = vec3(0.0);
+	//vec3 inside_start = vec3(0.0);
+	//vec3 inside_end = vec3(0.0);
 	bool inside = false;
-	bool looking_for_new_start = true;
+	bool looking_for_new_inside = true;
 	int points_inside = 0;
-	vec3 sample_point = vec3(0.0);
+	vec3 sample_point = origin;
 
 	float delta = delta_large;
 	for (float t = start; t < end; t += delta) {
@@ -127,19 +126,22 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			if (alpha > 0.0) {
 				inside = true;
 			} else {
-				looking_for_new_start = true;
+				looking_for_new_inside = true;
 			}
 		}
 
 		if (inside) {
 			/* Start of a new inside session? */
-			if (looking_for_new_start) {
+			if (looking_for_new_inside) {
 				/* Move the starting point a large delta backwards */
-				sample_point = sample_point - dir * 0;
+				t -= delta_large;
+				sample_point = origin + dir * t;
 				delta = delta_small;
-				inside_start = sample_point;
-				looking_for_new_start = false;
+				//inside_start = sample_point;
+				looking_for_new_inside = false;
+				points_inside = 0;
 			}
+			
 			alpha = cloud_sampling(sample_point, delta); /* Comment this line to see cloud structure */
 			value.a += alpha;
 			points_inside += 1;
@@ -148,11 +150,11 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		/* Check next structure block if we are still inside */
 		if (inside && points_inside * delta_small > delta_large) {
 			alpha = cloud_sampling_lowres(sample_point, delta);
-			if (!(alpha > 0.0)) {
+			if (alpha == 0.0) {
 				inside = false;
-				looking_for_new_start = true;
-				inside_end = sample_point;
-				length_inside += length(inside_end - inside_start) * value.a;
+				looking_for_new_inside = true;
+				//inside_end = sample_point;
+				//length_inside += length(inside_end - inside_start) * value.a;
 				delta = delta_large;
 			} else {
 				points_inside = 0;
@@ -169,12 +171,12 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	}
 
 	/* If we reached last step before exiting a cloud, we need to close off the sampling */
-	if (inside) {
-		inside_end = sample_point;
-		length_inside += length(inside_end - inside_start) * value.a;
-	}
+	//if (inside) {
+	//	inside_end = sample_point;
+	//	length_inside += length(inside_end - inside_start) * value.a;
+	//}
 
-	length_inside = smoothstep(50, 500, length_inside);
+	//length_inside = smoothstep(50, 500, length_inside);
 	value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));
 	//value.rgb = mix(value.rgb, cloud_dense, length_inside);
 	//value.rgb = mix(value.rgb, cloud_shade, shade);
@@ -208,5 +210,5 @@ void main() {
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
 	vec3 t = vec3(texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
 	t = vec3(coverage(t.r, 0.0));
-	//frag_color = vec4(t, 1.0);
+	//frag_color = vec4(s, 1.0);
 }
