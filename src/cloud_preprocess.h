@@ -3,6 +3,7 @@
 
 #include "texture.h"
 
-int cloud_preprocess(Texture* cloud_structure, Texture source);
+int cloud_preprocess1(Texture* cloud_structure, Texture source);
+int cloud_preprocess2(Texture* cloud_structure, Texture source);
 
 #endif
