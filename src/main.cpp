@@ -178,7 +178,7 @@ int main(int argc, char** argv)
 	/* Preprocess the structure of the clouds */
 	log("\nPreprocessing cloud structure...\n");
 	Texture cloud_structure_texture;
-	cloud_preprocess(&cloud_structure_texture, cloud_texture);
+	cloud_preprocess1(&cloud_structure_texture, cloud_texture);
 	
 	
 
