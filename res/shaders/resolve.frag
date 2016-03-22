@@ -9,6 +9,7 @@ out vec4 frag_color;
 //uniform sampler2D terrain_texture;
 /////////////////////////////////
 
+uniform sampler1D mie_texture;
 uniform sampler3D cloud_texture;
 uniform sampler3D cloud_structure;
 
@@ -21,6 +22,11 @@ uniform vec3 sun_pos;
 
 uniform mat4 view;
 uniform mat4 proj;
+
+float mie_phase(vec3 v1, vec3 v2) {
+	float degree = acos(dot(v1, v2) / length(v1) / length(v2));
+	return texture(mie_texture, degree * 0.00555).r;
+}
 
 float height_stratus(float y, bool low_res) {
 	float bottom = 50;
@@ -57,23 +63,26 @@ float cloud_sampling(vec3 v, float delta) {
 }
 
 float cast_shadow_ray(vec3 origin, vec3 dir) {
-	float delta = 5.0;
-	float end = 50.0;
+	float delta = 1.0;
+	float end = 10.0;
 
 	vec3 sample_point = vec3(0.0);
-	float shadowness = 0.0;
+	float inside = 0.0;
+
+	float phase = mie_phase(dir, vec3(camera_pos - origin));
 
 	for (float t = 0.0; t < end; t += delta) {
 		sample_point = origin + dir * t;
-		shadowness += cloud_sampling(sample_point, delta);
+		inside += cloud_sampling(sample_point, delta);
 	}
 
-	return smoothstep(0, 50, shadowness);
+	float value = clamp(inside * phase * 3, 0.0, 1.0);
+	return value - inside * 0.1;
 }	
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 20.0;
+	float delta_large = 4.0;
 	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
@@ -81,6 +90,8 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	vec4 value = vec4(0.0);
 	vec3 cloud_color = vec3(0.93, 0.93, 0.95);
 	vec3 cloud_shade = vec3(0.859, 0.847, 0.757) - 0.1;
+	vec3 cloud_scat = vec3(0.99, 0.96, 0.95);
+	cloud_color = vec3(0.671, 0.725, 0.753);
 	//vec3 cloud_dense = vec3(0.98);
 	value.rgb = cloud_color;
 
@@ -164,7 +175,8 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 		/* Calculate the shadows */
 		float shade = cast_shadow_ray(sample_point, normalize(sun_pos - sample_point));
-		value.rgb = mix(value.rgb, cloud_shade, shade);
+		//value.rgb = mix(value.rgb, cloud_shade, shade);
+		value.rgb = mix(value.rgb, cloud_scat, shade);
 
 		/* Adaptive step length */
 		//delta_small = 0.02 * t;
