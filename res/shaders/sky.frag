@@ -13,6 +13,7 @@ void main () {
 
 	vec3 deep_blue = vec3(0.15, 0.3, 0.6);
 	vec3 light_blue = vec3(0.75, 0.95, 0.99);
+	light_blue = vec3(0.0);
 
 	/* Lighter around the horizon */
 	vec3 sky_color = mix(deep_blue, light_blue, smoothstep(-1.0, 0.0, dot(normalize(N), vec3(0.0, 1.0, 0.0))));

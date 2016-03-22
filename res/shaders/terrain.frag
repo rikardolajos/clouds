@@ -17,6 +17,7 @@ void main () {
 	vec3 color = terrain + fog;
 	fcolor = vec4(color, smoothstep(580, 330, dist));
 	//fcolor = vec4(uv.xy, 0, 1);
+
 	/* Grid */
 	if (mod(pos.x, 25) < 0.2 || mod(pos.y, 25) < 0.2) {
 		fcolor = vec4(1.0, 1.0, 0.4, 1.0);
