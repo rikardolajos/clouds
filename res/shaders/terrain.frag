@@ -20,6 +20,6 @@ void main () {
 
 	/* Grid */
 	if (mod(pos.x, 25) < 0.2 || mod(pos.y, 25) < 0.2) {
-		fcolor = vec4(1.0, 1.0, 0.4, 1.0);
+		//fcolor = vec4(1.0, 1.0, 0.4, 1.0);
 	}
 }

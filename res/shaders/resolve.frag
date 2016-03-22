@@ -97,6 +97,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 		inside += cloud_sampling(sample_point, delta);
 	}
 
+	//float value = clamp(smoothstep(20, 50, inside), 0.0, 1.0);
 	float value = clamp(phase, 0.0, 1.0);
 	return value;
 }	
