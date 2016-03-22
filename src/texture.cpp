@@ -27,19 +27,20 @@ int texture1D_phase(Texture* t, const char* file_path)
 	texture_activate(t);
 
 	/* Create image */
-	float* data = (float*)calloc(1800, sizeof *data);
+	uint8_t* data = (uint8_t*)calloc(1801, sizeof *data);
 
 	/* Read image*/
 	int i = 0;
-	float pixel;
-	while (fscanf(fp, "%d", &pixel) == 1) {
-		data[i++] = pixel;
+	char value[128];
+	while (fgets(value, 128, fp)) {
+		value[strlen(value) - 1] = '\0';
+		data[i++] = (uint8_t)(255 * atof(value));
 	}
 
 	glGenTextures(1, &t->object);
 	glBindTexture(GL_TEXTURE_1D, t->object);
 
-	glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 1800, 0, GL_RGBA, GL_FLOAT, data);
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_RED, 1800, 0, GL_RED, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_1D);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
