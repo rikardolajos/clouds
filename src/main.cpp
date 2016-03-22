@@ -175,6 +175,12 @@ int main(int argc, char** argv)
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
+	log("Loading Mie phase texture...\n");
+	Texture mie_texture;
+	if (texture1D_phase(&mie_texture, "./res/textures/phase.txt") != 0) {
+		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
+	}
+
 	/* Preprocess the structure of the clouds */
 	log("\nPreprocessing cloud structure...\n");
 	Texture cloud_structure_texture;
@@ -273,6 +279,7 @@ int main(int argc, char** argv)
 		shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
 		//shader_send_texture2D(resolve_shader, terrain_texture, "terrain_texture");
 		//shader_send_texture3D(resolve_shader, perlin1_texture, "perlin1");
+		shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
 		shader_send_texture3D(resolve_shader, cloud_texture, "cloud_texture");
 		shader_send_texture3D(resolve_shader, cloud_structure_texture, "cloud_structure");
 

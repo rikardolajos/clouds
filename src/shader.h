@@ -22,6 +22,7 @@ void shader_uniform_mat4(Shader shader, glm::mat4 matrix, const char* name);
 void shader_uniform_vec2(Shader shader, glm::vec2 vector, const char* name);
 void shader_uniform_vec3(Shader shader, glm::vec3 vector, const char* name);
 void shader_uniform_1f(Shader shader, float f, const char* name);
+void shader_send_texture1D(Shader shader, Texture t, const char* name);
 void shader_send_texture2D(Shader shader, Texture t, const char* name);
 void shader_send_texture3D(Shader shader, Texture t, const char* name);
 

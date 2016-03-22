@@ -162,6 +162,15 @@ void shader_uniform_1f(Shader shader, float f, const char* name)
 	glUniform1f(uni, f);
 }
 
+void shader_send_texture1D(Shader shader, Texture t, const char* name)
+{
+	glUseProgram(shader.shader_program);
+	GLint uni = glGetUniformLocation(shader.shader_program, name);
+	glUniform1i(uni, t.index);
+	glActiveTexture(GL_TEXTURE0 + t.index);
+	glBindTexture(GL_TEXTURE_1D, t.object);
+}
+
 void shader_send_texture2D(Shader shader, Texture t, const char* name)
 {
 	glUseProgram(shader.shader_program);

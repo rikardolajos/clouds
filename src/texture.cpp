@@ -16,6 +16,40 @@ void texture_activate(Texture* t)
 	t->index = active_textures++;
 }
 
+int texture1D_phase(Texture* t, const char* file_path)
+{
+	FILE* fp = fopen(file_path, "r");
+
+	if (fp == NULL) {
+		return -1;
+	}
+
+	texture_activate(t);
+
+	/* Create image */
+	float* data = (float*)calloc(1800, sizeof *data);
+
+	/* Read image*/
+	int i = 0;
+	float pixel;
+	while (fscanf(fp, "%d", &pixel) == 1) {
+		data[i++] = pixel;
+	}
+
+	glGenTextures(1, &t->object);
+	glBindTexture(GL_TEXTURE_1D, t->object);
+
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 1800, 0, GL_RGBA, GL_FLOAT, data);
+	glGenerateMipmap(GL_TEXTURE_1D);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+	free(data);
+
+	return 0;
+}
+
 int texture2D_from_ex5(Texture* t, const char* file_path)
 {
 	FILE* fp = fopen(file_path, "r");
@@ -24,7 +58,7 @@ int texture2D_from_ex5(Texture* t, const char* file_path)
 		return -1;
 	}
 
-	t->index = active_textures++;
+	texture_activate(t);
 
 	/* Read header */
 	fscanf(fp, "%d", &t->width);
@@ -66,7 +100,7 @@ int texture3D_from_ex5(Texture* t, const char* file_path)
 		return -1;
 	}
 
-	t->index = active_textures++;
+	texture_activate(t);
 
 	/* Read header */
 	fscanf(fp, "%d", &t->width);

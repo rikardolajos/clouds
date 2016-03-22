@@ -11,6 +11,7 @@ struct Texture {
 };
 
 void texture_activate(Texture* t);
+int texture1D_phase(Texture* t, const char* file_path);
 int texture2D_from_ex5(Texture* t, const char* file_path);
 int texture3D_from_ex5(Texture* t, const char* file_path);
 
