@@ -9,6 +9,7 @@ out vec4 frag_color;
 //uniform sampler2D terrain_texture;
 /////////////////////////////////
 
+uniform sampler1D mie_texture;
 uniform sampler3D cloud_texture;
 uniform sampler3D cloud_structure;
 
@@ -21,6 +22,11 @@ uniform vec3 sun_pos;
 
 uniform mat4 view;
 uniform mat4 proj;
+
+float mie_phase(vec3 v1, vec3 v2) {
+	float degree = acos(dot(v1, v2) / length(v1) / length(v2));
+	return texture(mie_texture, degree * 0.00555).r;
+}
 
 float height_stratus(float y, bool low_res) {
 	float bottom = 50;
@@ -69,24 +75,27 @@ float cloud_sampling(vec3 v, float delta) {
 		return 0.1;
 	}
 	if (length(v - vec3(-20, 25, 0)) < 25) {
-		return 0.1;
+		return 0.04;
 	}
 	return 0.0;
 }
 
 float cast_shadow_ray(vec3 origin, vec3 dir) {
-	float delta = 5.0;
-	float end = 50.0;
+	float delta = 1.0;
+	float end = 10.0;
 
 	vec3 sample_point = vec3(0.0);
-	float shadowness = 0.0;
+	float inside = 0.0;
+
+	float phase = mie_phase(dir, vec3(camera_pos - origin));
 
 	for (float t = 0.0; t < end; t += delta) {
 		sample_point = origin + dir * t;
-		shadowness += cloud_sampling(sample_point, delta);
+		inside += cloud_sampling(sample_point, delta);
 	}
 
-	return smoothstep(0, 50, shadowness);
+	float value = clamp(inside * phase * 3, 0.0, 1.0);
+	return value - inside * 0.1;
 }	
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
@@ -99,6 +108,8 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	vec4 value = vec4(0.0);
 	vec3 cloud_color = vec3(0.93, 0.93, 0.95);
 	vec3 cloud_shade = vec3(0.859, 0.847, 0.757) - 0.1;
+	vec3 cloud_scat = vec3(0.99, 0.96, 0.95);
+	cloud_color = vec3(0.671, 0.725, 0.753);
 	//vec3 cloud_dense = vec3(0.98);
 	value.rgb = cloud_color;
 
@@ -152,7 +163,10 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			/* Start of a new inside session? */
 			if (looking_for_new_inside) {
 				/* Move the starting point a large delta backwards */
-				t -= delta_large;
+				t -= 4 * delta_large;
+				if (t < gl_DepthRange.near) {
+					t = gl_DepthRange.near;
+				}
 				sample_point = origin + dir * t;
 				delta = delta_small;
 				//inside_start = sample_point;
@@ -166,23 +180,24 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		}
 
 		/* Check next structure block if we are still inside */
-		if (inside && points_inside * delta_small > delta_large) {
-			alpha = cloud_sampling_lowres(sample_point, delta);
-			if (alpha == 0.0) {
-				inside = false;
-				looking_for_new_inside = true;
-				//inside_end = sample_point;
-				//length_inside += length(inside_end - inside_start) * value.a;
-				delta = delta_large;
-			} else {
-				points_inside = 0;
-			}
-		}
+		//if (inside && points_inside * delta_small > delta_large) {
+		//	alpha = cloud_sampling_lowres(sample_point, delta);
+		//	if (alpha == 0.0) {
+		//		inside = false;
+		//		looking_for_new_inside = true;
+		//		//inside_end = sample_point;
+		//		//length_inside += length(inside_end - inside_start) * value.a;
+		//		delta = delta_large;
+		//	} else {
+		//		points_inside = 0;
+		//	}
+		//}
 
 
 		/* Calculate the shadows */
 		float shade = cast_shadow_ray(sample_point, normalize(sun_pos - sample_point));
-		value.rgb = mix(value.rgb, cloud_shade, shade);
+		//value.rgb = mix(value.rgb, cloud_shade, shade);
+		//value.rgb = mix(value.rgb, cloud_scat, shade);
 
 		/* Adaptive step length */
 		//delta_small = 0.02 * t;
