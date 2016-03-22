@@ -23,9 +23,12 @@ uniform vec3 sun_pos;
 uniform mat4 view;
 uniform mat4 proj;
 
+float PI = 3.1415962;
+float PI_r = 0.3183098;
+
 float mie_phase(vec3 v1, vec3 v2) {
-	float degree = acos(dot(v1, v2) / length(v1) / length(v2));
-	return texture(mie_texture, degree * 0.00555).r;
+	float angle = acos(dot(v1, v2) / length(v1) / length(v2));
+	return pow(texture(mie_texture, (PI - angle) * PI_r).r, 1);
 }
 
 float height_stratus(float y, bool low_res) {
@@ -61,10 +64,10 @@ float cloud_sampling1(vec3 v, float delta) {
 
 /******     Kub och sfär    ******/
 float cloud_sampling_lowres(vec3 v, float delta) {
-	if (v.x > 10 && v.x < 60 && v.z > 10 && v.z < 60 && v.y > 30 && v.y < 80) {
+	if (v.x > 0 && v.x < 70 && v.z > 0 && v.z < 70 && v.y > 20 && v.y < 90) {
 		return 1.0;
 	}
-	if (length(v - vec3(-20, 25, 0)) < 25) {
+	if (length(v - vec3(-20, 25, 0)) < 30) {
 		return 1.0;
 	}
 	return 0.0;
@@ -80,7 +83,7 @@ float cloud_sampling(vec3 v, float delta) {
 	return 0.0;
 }
 
-float cast_shadow_ray(vec3 origin, vec3 dir) {
+float cast_scatter_ray(vec3 origin, vec3 dir) {
 	float delta = 1.0;
 	float end = 10.0;
 
@@ -94,8 +97,8 @@ float cast_shadow_ray(vec3 origin, vec3 dir) {
 		inside += cloud_sampling(sample_point, delta);
 	}
 
-	float value = clamp(inside * phase * 3, 0.0, 1.0);
-	return value - inside * 0.1;
+	float value = clamp(phase, 0.0, 1.0);
+	return value;
 }	
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
@@ -163,7 +166,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			/* Start of a new inside session? */
 			if (looking_for_new_inside) {
 				/* Move the starting point a large delta backwards */
-				t -= 4 * delta_large;
+				t -= delta_large;
 				if (t < gl_DepthRange.near) {
 					t = gl_DepthRange.near;
 				}
@@ -180,24 +183,24 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		}
 
 		/* Check next structure block if we are still inside */
-		//if (inside && points_inside * delta_small > delta_large) {
-		//	alpha = cloud_sampling_lowres(sample_point, delta);
-		//	if (alpha == 0.0) {
-		//		inside = false;
-		//		looking_for_new_inside = true;
-		//		//inside_end = sample_point;
-		//		//length_inside += length(inside_end - inside_start) * value.a;
-		//		delta = delta_large;
-		//	} else {
-		//		points_inside = 0;
-		//	}
-		//}
+		if (inside && points_inside * delta_small > delta_large) {
+			alpha = cloud_sampling_lowres(sample_point, delta);
+			if (alpha == 0.0) {
+				inside = false;
+				looking_for_new_inside = true;
+				//inside_end = sample_point;
+				//length_inside += length(inside_end - inside_start) * value.a;
+				delta = delta_large;
+			} else {
+				points_inside = 0;
+			}
+		}
 
 
 		/* Calculate the shadows */
-		float shade = cast_shadow_ray(sample_point, normalize(sun_pos - sample_point));
+		float shade = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
 		//value.rgb = mix(value.rgb, cloud_shade, shade);
-		//value.rgb = mix(value.rgb, cloud_scat, shade);
+		value.rgb = mix(value.rgb, cloud_scat, shade);
 
 		/* Adaptive step length */
 		//delta_small = 0.02 * t;
