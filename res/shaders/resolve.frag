@@ -26,9 +26,15 @@ uniform mat4 proj;
 float PI = 3.1415962;
 float PI_r = 0.3183098;
 
-float mie_phase(vec3 v1, vec3 v2) {
-	float angle = acos(dot(v1, v2) / length(v1) / length(v2));
-	return pow(texture(mie_texture, (PI - angle) * PI_r).r, 1);
+float HG(float costheta) {
+	float g = 0.25;
+	return 0.25 * PI_r * (1 - pow(g, 2.0)) / pow((1 + pow(g, 2.0) - 2 * g + costheta), 1.5);
+}
+
+float phase(vec3 v1, vec3 v2) {
+	//float angle = acos(dot(v1 / length(v1), v2 / length(v2)));
+	// return texture(mie_texture, (PI - angle) * PI_r).r;
+	return HG(dot(v1 / length(v1), v2 / length(v2)));
 }
 
 float height_stratus(float y, bool low_res) {
@@ -84,27 +90,31 @@ float cloud_sampling(vec3 v, float delta) {
 }
 
 float cast_scatter_ray(vec3 origin, vec3 dir) {
-	float delta = 1.0;
-	float end = 10.0;
+	float delta = 5.0;
+	float end = 200.0;
 
 	vec3 sample_point = vec3(0.0);
 	float inside = 0.0;
 
-	float phase = mie_phase(dir, vec3(camera_pos - origin));
+	float phase = phase(dir, vec3(camera_pos - origin));
 
 	for (float t = 0.0; t < end; t += delta) {
 		sample_point = origin + dir * t;
 		inside += cloud_sampling(sample_point, delta);
 	}
 
-	//float value = clamp(smoothstep(20, 50, inside), 0.0, 1.0);
+	float beer = exp(-0.5 * inside);
+	//beer = inside * delta;
+
+	//float value = clamp(smaoothstep(20, 50, inside), 0.0, 1.0);
 	float value = clamp(phase, 0.0, 1.0);
+	value = phase;
 	return value;
 }	
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 20.0;
+	float delta_large = 1.0;
 	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
@@ -112,16 +122,16 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	vec4 value = vec4(0.0);
 	vec3 cloud_color = vec3(0.93, 0.93, 0.95);
 	vec3 cloud_shade = vec3(0.859, 0.847, 0.757) - 0.1;
-	vec3 cloud_scat = vec3(0.99, 0.96, 0.95);
-	cloud_color = vec3(0.671, 0.725, 0.753);
+	vec3 cloud_bright = vec3(0.99, 0.96, 0.95);
+	vec3 cloud_dark = vec3(0.671, 0.725, 0.753);
 	//vec3 cloud_dense = vec3(0.98);
-	value.rgb = cloud_color;
+	value.rgb = cloud_dark;
 
 	/* Test colors */
 	//cloud_color = vec3(1.0, 0.5, 0.0);
 	//cloud_shade = vec3(1.0, 0.0, 1.0);
 	//cloud_dense = vec3(0.0, 1.0, 0.0);
-	value.rgb = cloud_color;
+	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
 	//vec3 inside_start = vec3(0.0);
@@ -199,9 +209,10 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 
 		/* Calculate the shadows */
-		float shade = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
+		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
 		//value.rgb = mix(value.rgb, cloud_shade, shade);
-		value.rgb = mix(value.rgb, cloud_scat, shade);
+		//value.rgb = mix(value.rgb, cloud_bright, energy);
+		value.rgb = vec3(energy);
 
 		/* Adaptive step length */
 		//delta_small = 0.02 * t;
