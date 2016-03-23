@@ -27,14 +27,19 @@ float PI = 3.1415962;
 float PI_r = 0.3183098;
 
 float HG(float costheta) {
-	float g = 0.25;
-	return 0.25 * PI_r * (1 - pow(g, 2.0)) / pow((1 + pow(g, 2.0) - 2 * g + costheta), 1.5);
+	float g = 0.99;
+	return 0.25 * PI_r * (1 - pow(g, 2.0)) / pow((1 + pow(g, 2.0) - 2 * g * costheta), 1.5);
+}
+
+float Mie(float costheta) {
+	float angle = acos(costheta);
+	return texture(mie_texture, (PI - angle) * PI_r).r;
 }
 
 float phase(vec3 v1, vec3 v2) {
-	//float angle = acos(dot(v1 / length(v1), v2 / length(v2)));
-	// return texture(mie_texture, (PI - angle) * PI_r).r;
-	return HG(dot(v1 / length(v1), v2 / length(v2)));
+	float costheta = dot(v1, v2) / length(v1) / length(v2);
+	return HG(-costheta);
+	//return Mie(costheta);
 }
 
 float height_stratus(float y, bool low_res) {
