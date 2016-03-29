@@ -27,9 +27,6 @@
     <None Include="..\res\models\terrain.blend">
       <Filter>Resource Files\models</Filter>
     </None>
-    <None Include="res\shaders\resolve.frag">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
     <None Include="res\shaders\resolve.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
@@ -43,6 +40,12 @@
       <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="res\shaders\terrain.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shaders\resolve_noise.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shaders\resolve_tile.frag">
       <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>
