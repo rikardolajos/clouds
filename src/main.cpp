@@ -7,6 +7,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "camera.h"
+#include "cloud_tiling.h"
 #include "cloud_preprocess.h"
 #include "fullscreen_quad.h"
 #include "log.h"
@@ -181,12 +182,24 @@ int main(int argc, char** argv)
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
-	/* Preprocess the structure of the clouds */
-	log("\nPreprocessing cloud structure...\n");
+	/* Preprocess the structure of the noise based clouds */
+	log("\nPreprocessing cloud (noise based) structure...\n");
 	Texture cloud_structure_texture;
-	cloud_preprocess1(&cloud_structure_texture, cloud_texture);
+	cloud_preprocess(&cloud_structure_texture, cloud_texture);
+
+	/* Preprocess for the tile based clouds */
+	log("\nPreprocessing cloud (tile based) structure...\n");
+	Texture cloud_tile00;
+	cloud_tiling_init(&cloud_tile00);
 	
-	
+	/* Send textures to shaders */
+	shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
+	//shader_send_texture2D(resolve_shader, terrain_texture, "terrain_texture");
+	//shader_send_texture3D(resolve_shader, perlin1_texture, "perlin1");
+	shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
+	shader_send_texture3D(resolve_shader, cloud_texture, "cloud_texture");
+	shader_send_texture3D(resolve_shader, cloud_structure_texture, "cloud_structure");
+	shader_send_texture3D(resolve_shader, cloud_tile00, "cloud_tile00");
 
 	/* Main loop */
 	log("\nStarting main loop.\n\n");
@@ -275,13 +288,7 @@ int main(int argc, char** argv)
 		shader_uniform_vec3(resolve_shader, camera.position, "camera_pos");
 		shader_uniform_vec3(resolve_shader, sun.position, "sun_pos");
 
-		/* Send textures to shaders */
-		shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
-		//shader_send_texture2D(resolve_shader, terrain_texture, "terrain_texture");
-		//shader_send_texture3D(resolve_shader, perlin1_texture, "perlin1");
-		shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
-		shader_send_texture3D(resolve_shader, cloud_texture, "cloud_texture");
-		shader_send_texture3D(resolve_shader, cloud_structure_texture, "cloud_structure");
+		
 
 		/* OpenGL rendering */
 		fs_quad_set_as_render_target(fs_quad);
