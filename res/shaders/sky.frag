@@ -17,7 +17,7 @@ void main () {
 	/* Lighter around the horizon */
 	vec3 sky_color = mix(deep_blue, light_blue, smoothstep(-1.0, 0.0, dot(normalize(N), vec3(0.0, 1.0, 0.0))));
 	/* Lighter around the sun */
-	sky_color += 0.1 * mix(vec3(0.0), vec3(1.0), smoothstep(0.85, 1.0, sun));
+	sky_color += 0.15 * mix(vec3(0.0), vec3(1.0), smoothstep(0.85, 1.0, sun));
 	//sky_color += 0.2 * mix(vec3(0.0), vec3(1.0), smoothstep(0.75, 1.0, sun));
 
 	vec3 color = sky_color + sun_pos * sun_color;
