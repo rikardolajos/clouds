@@ -96,8 +96,8 @@ float cloud_sampling1(vec3 v, float delta) {
 }
 
 float cast_scatter_ray(vec3 origin, vec3 dir) {
-	float delta = 1.0;
-	float end = 10.0;
+	float delta = 5.0;
+	float end = 50.0;
 
 	vec3 sample_point = vec3(0.0);
 	float inside = 0.0;
@@ -112,13 +112,13 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 	float beer = exp(-0.2 * inside);
 
 	//float value = clamp(smaoothstep(20, 50, inside), 0.0, 1.0);
-	float value =  beer + phase;
+	float value = phase + beer;
 	return value;
 }	
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 20.0;
+	float delta_large = 1.0;
 	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
@@ -164,8 +164,8 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		//	break;
 		//}
 
-		/* Pull down the horizon to get a better looking sky */
-		sample_point.y += 0.1 * t; 
+		/* Pull down the horizon to get a better looking sky (does not work with phase function!) */
+		//sample_point.y += 0.1 * t; 
 
 		float alpha;
 		if (!inside) {
@@ -260,7 +260,7 @@ void main() {
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	vec3 t = vec3(texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).a);
+	vec3 t = vec3(texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).b);
 	//t = vec3(coverage(t.r, 0.0));
 	//frag_color = vec4(t, 1.0);
 }

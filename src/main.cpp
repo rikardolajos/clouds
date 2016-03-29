@@ -27,8 +27,7 @@
 #define FULLSCREEN 0
 #define VERTICAL_SYNC 0
 
-#define CLOUD_BASE 100.0f
-#define CLOUD_TOP 400.0f
+#define CLOUD_TILE 1
 
 #if FULLSCREEN
 	#define SCREEN_WIDTH 1920
@@ -130,10 +129,17 @@ int main(int argc, char** argv)
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
+#if CLOUD_TILE
 	Shader resolve_shader;
-	if (shader_init(&resolve_shader, "./res/shaders/resolve.vert", "./res/shaders/resolve.frag") != 0) {
+	if (shader_init(&resolve_shader, "./res/shaders/resolve.vert", "./res/shaders/resolve_tile.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
+#else
+	Shader resolve_shader;
+	if (shader_init(&resolve_shader, "./res/shaders/resolve.vert", "./res/shaders/resolve_noise.frag") != 0) {
+		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
+	}
+#endif
 
 	/* Initialize fullscreen quad */
 	FS_Quad fs_quad;
@@ -182,24 +188,28 @@ int main(int argc, char** argv)
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
+#if CLOUD_TILE
+	/* Preprocess for the tile based clouds */
+	log("\nPreprocessing cloud (tile based) structure...\n");
+	Texture cloud_tile00;
+	cloud_tiling_init(&cloud_tile00);
+
+	/* Send textures to shaders */
+	shader_send_texture3D(resolve_shader, cloud_tile00, "cloud_tile00");
+#else
 	/* Preprocess the structure of the noise based clouds */
 	log("\nPreprocessing cloud (noise based) structure...\n");
 	Texture cloud_structure_texture;
 	cloud_preprocess(&cloud_structure_texture, cloud_texture);
 
-	/* Preprocess for the tile based clouds */
-	log("\nPreprocessing cloud (tile based) structure...\n");
-	Texture cloud_tile00;
-	cloud_tiling_init(&cloud_tile00);
-	
 	/* Send textures to shaders */
-	shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
-	//shader_send_texture2D(resolve_shader, terrain_texture, "terrain_texture");
-	//shader_send_texture3D(resolve_shader, perlin1_texture, "perlin1");
-	shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
 	shader_send_texture3D(resolve_shader, cloud_texture, "cloud_texture");
 	shader_send_texture3D(resolve_shader, cloud_structure_texture, "cloud_structure");
-	shader_send_texture3D(resolve_shader, cloud_tile00, "cloud_tile00");
+#endif
+
+	/* Send textures to shaders */
+	shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
+	shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
 
 	/* Main loop */
 	log("\nStarting main loop.\n\n");
