@@ -3,6 +3,6 @@
 
 #include "texture.h"
 
-int cloud_tiling_init(Texture* cloud_tile00);
+int cloud_tiling_init(Texture cloud_tiles[], Texture* cloud_structure);
 
 #endif

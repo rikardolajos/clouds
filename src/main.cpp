@@ -191,11 +191,13 @@ int main(int argc, char** argv)
 #if CLOUD_TILE
 	/* Preprocess for the tile based clouds */
 	log("\nPreprocessing cloud (tile based) structure...\n");
-	Texture cloud_tile00;
-	cloud_tiling_init(&cloud_tile00);
+	Texture cloud_structure;
+	Texture cloud_tiles[5];
+	cloud_tiling_init(cloud_tiles, &cloud_structure);
 
 	/* Send textures to shaders */
-	shader_send_texture3D(resolve_shader, cloud_tile00, "cloud_tile00");
+	shader_send_texture3D(resolve_shader, cloud_structure, "cloud_structure");
+	shader_send_texture3D(resolve_shader, cloud_tiles[0], "cloud_tile00");
 #else
 	/* Preprocess the structure of the noise based clouds */
 	log("\nPreprocessing cloud (noise based) structure...\n");
