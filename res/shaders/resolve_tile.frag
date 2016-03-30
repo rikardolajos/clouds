@@ -5,7 +5,7 @@ layout(location = 0) in vec3 vertex_pos;
 out vec4 frag_color;
 
 uniform sampler1D mie_texture;
-uniform sampler3D cloud_structure
+uniform sampler3D cloud_structure;
 uniform sampler3D cloud_tile00;
 
 uniform sampler2D diffuse_buffer;
@@ -37,22 +37,18 @@ float phase(vec3 v1, vec3 v2) {
 	//return Mie(costheta);
 }
 
-float cloud_sampling_lowres(vec3 v, float delta) {
-	vec4 texture = texture(cloud_structure, v / 400);
-	float height = height_stratus(v.y, true);
-
-	return texture.r * height;
+float cloud_sampling_structure(vec3 v, float delta) {
+	vec4 texture = texture(cloud_structure, v / 1024);
+	return texture.r;
 }
 
-float cloud_sampling(vec3 v, float delta) {
+float cloud_sampling_tile(float tile, vec3 v, float delta) {
 
-	vec4 textureA = texture(cloud_texture, v / 400);
-	vec4 textureB = texture(cloud_texture, v / 50);
+	if (tile * 255 == 1) {
+		return texture(cloud_tile00, v * 0.25).r * delta;
+	}
 
-	float coverage = coverage(textureA.r, v.y);
-	float height = height_stratus(v.y, false);
-
-	return textureA.g * coverage * height * delta * 0.4 * textureB.b;
+	return 0;
 }
 
 float cast_scatter_ray(vec3 origin, vec3 dir) {
@@ -66,7 +62,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 
 	for (float t = 0.0; t < end; t += delta) {
 		sample_point = origin + dir * t;
-		inside += cloud_sampling(sample_point, delta);
+		//inside += cloud_sampling(sample_point, delta);
 	}
 
 	float beer = exp(-0.2 * inside);
@@ -78,7 +74,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
 	float delta_large = 1.0;
-	float delta_small = 1.0;
+	float delta_small = 0.5;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
 
@@ -89,12 +85,12 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	vec3 cloud_dark = vec3(0.671, 0.725, 0.753);
 	value.rgb = cloud_dark;
 
-	float length_inside = 0.0;
 	bool inside = false;
-	bool looking_for_new_inside = true;
+	bool looking_for_new_tile = true;
 	int points_inside = 0;
 	vec3 sample_point = origin;
 
+	float tile;
 	float delta = delta_large;
 	for (float t = start; t < end; t += delta) {
 		sample_point = origin + dir * t;
@@ -111,17 +107,17 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 		float alpha;
 		if (!inside) {
-			alpha = cloud_sampling_lowres(sample_point, delta);
-			if (alpha > 0.0) {
+			tile = cloud_sampling_structure(sample_point, delta);
+			if (tile > 0.0) {
 				inside = true;
 			} else {
-				looking_for_new_inside = true;
+				looking_for_new_tile = true;
 			}
 		}
 
 		if (inside) {
-			/* Start of a new inside session? */
-			if (looking_for_new_inside) {
+			/* Start of a new tile? */
+			if (looking_for_new_tile) {
 				/* Move the starting point a large delta backwards */
 				t -= delta_large;
 				if (t < gl_DepthRange.near) {
@@ -129,22 +125,22 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 				}
 				sample_point = origin + dir * t;
 				delta = delta_small;
-
-				looking_for_new_inside = false;
+			
+				looking_for_new_tile = false;
 				points_inside = 0;
 			}
 			
-			alpha = cloud_sampling(sample_point, delta); /* Comment this line to see cloud structure */
+			alpha = cloud_sampling_tile(tile, sample_point, delta);
 			value.a += alpha;
 			points_inside += 1;
 		}
 
 		/* Check next structure block if we are still inside */
 		if (inside && points_inside * delta_small > delta_large) {
-			alpha = cloud_sampling_lowres(sample_point, delta);
-			if (alpha == 0.0) {
+			tile = cloud_sampling_structure(sample_point, delta);
+			if (tile == 0.0) {
 				inside = false;
-				looking_for_new_inside = true;
+				looking_for_new_tile = true;
 
 				delta = delta_large;
 			} else {
@@ -154,7 +150,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 		/* Calculate the shadows */
 		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
-		value.rgb = mix(cloud_dark, cloud_bright, energy);
+		//value.rgb = mix(cloud_dark, cloud_bright, energy);
 	}
 
 	value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));

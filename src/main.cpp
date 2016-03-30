@@ -248,6 +248,12 @@ int main(int argc, char** argv)
 				if (e.key.keysym.sym == SDLK_r) {
 					log("Recompiling active shaders...\n\n");
 					shader_recompile();
+
+					/* Send textures to shaders */
+					shader_send_texture3D(resolve_shader, cloud_structure, "cloud_structure");
+					shader_send_texture3D(resolve_shader, cloud_tiles[0], "cloud_tile00");
+					shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
+					shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
 				}
 			}
 

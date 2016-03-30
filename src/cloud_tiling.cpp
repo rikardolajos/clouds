@@ -21,10 +21,11 @@ int cloud_tiling_structure(Texture* cloud_structure)
 	for (int i = 0; i < cloud_structure->width; i++) {
 		for (int j = 0; j < cloud_structure->height; j++) {
 			for (int k = 0; k < cloud_structure->depth; k++) {
-				if (j == 32 && i == 32 && k == 32) {
-					pixels[k + j * cloud_structure->height + i * cloud_structure->height * cloud_structure->depth] = 255;
+				if (j == 32 && i == 0 && k == 0) {
+					pixels[k + j * cloud_structure->height + i * cloud_structure->height * cloud_structure->depth] = 1;
+				} else {
+					pixels[k + j * cloud_structure->height + i * cloud_structure->height * cloud_structure->depth] = 0;
 				}
-				pixels[k + j * cloud_structure->height + i * cloud_structure->height * cloud_structure->depth] = 0;
 			}
 		}
 	}
@@ -36,7 +37,7 @@ int cloud_tiling_structure(Texture* cloud_structure)
 	/* Give it an index */
 	texture_activate(cloud_structure);
 
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, cloud_structure->width, cloud_structure->height, cloud_structure->depth, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, cloud_structure->width, cloud_structure->height, cloud_structure->depth, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
 	glGenerateMipmap(GL_TEXTURE_3D);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -62,10 +63,11 @@ int cloud_tiling_init(Texture cloud_tiles[], Texture* cloud_structure)
 	for (int i = 0; i < cloud_tiles[0].width; i++) {
 		for (int j = 0; j < cloud_tiles[0].height; j++) {
 			for (int k = 0; k < cloud_tiles[0].depth; k++) {
-				if (j > 32) {
+				if (j == 2) {
 					pixels[k + j * cloud_tiles[0].height + i * cloud_tiles[0].height * cloud_tiles[0].depth] = 255;
+				} else {
+					pixels[k + j * cloud_tiles[0].height + i * cloud_tiles[0].height * cloud_tiles[0].depth] = 0;
 				}
-				pixels[k + j * cloud_tiles[0].height + i * cloud_tiles[0].height * cloud_tiles[0].depth] = 0;
 			}
 		}
 	}
