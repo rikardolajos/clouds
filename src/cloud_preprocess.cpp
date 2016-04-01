@@ -12,7 +12,7 @@
 GLubyte structure(GLubyte pixel)
 {
 	//return glm::smoothstep(0.45, 0.65, pixel / 255.0);
-	if (pixel / 255.0 > 0.3) {
+	if (pixel / 255.0 > 0.63) {
 		return 1;
 	}
 	return 0;
@@ -70,6 +70,32 @@ int cloud_preprocess(Texture* cloud_structure, Texture source)
 		}
 	}
 
+	/* Post process -- expanding the structure to reduce artifacts */
+	GLubyte* post_pixels = (GLubyte*)calloc(cloud_structure->width * cloud_structure->height * cloud_structure->depth, sizeof(GLubyte));
+
+	for (int i = 0; i < cloud_structure->width; i++) {
+		for (int j = 0; j < cloud_structure->height; j++) {
+			for (int k = 0; k < cloud_structure->depth; k++) {
+
+				if (new_structure[k + j * cloud_structure->height + i * cloud_structure->height * cloud_structure->depth] == 0) {
+					continue;
+				}
+
+				for (int ii = -1; ii < 2; ii++) {
+					if (i + ii < 0 || i + ii >= cloud_structure->width) continue;
+					for (int jj = -1; jj < 2; jj++) {
+						if (j + jj < 0 || j + jj >= cloud_structure->height) continue;
+						for (int kk = -1; kk < 2; kk++) {
+							if (k + kk < 0 || k + kk >= cloud_structure->depth) continue;
+							
+							post_pixels[(k + kk) + (j + jj) * cloud_structure->height + (i + ii) * cloud_structure->height * cloud_structure->depth] = 255;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/* Bind the new texture */
 	glGenTextures(1, &cloud_structure->object);
 	glBindTexture(GL_TEXTURE_3D, cloud_structure->object);
@@ -77,7 +103,7 @@ int cloud_preprocess(Texture* cloud_structure, Texture source)
 	/* Give it an index */
 	texture_activate(cloud_structure);
 
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, cloud_structure->width, cloud_structure->height, cloud_structure->depth, 0, GL_RED, GL_UNSIGNED_BYTE, new_structure);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, cloud_structure->width, cloud_structure->height, cloud_structure->depth, 0, GL_RED, GL_UNSIGNED_BYTE, post_pixels);
 	glGenerateMipmap(GL_TEXTURE_3D);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -88,6 +114,7 @@ int cloud_preprocess(Texture* cloud_structure, Texture source)
 	free(cloud_pixels);
 	free(temp);
 	free(new_structure);
+	free(post_pixels);
 
 	return 0;
 }
