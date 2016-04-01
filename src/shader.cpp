@@ -23,7 +23,7 @@ static void shader_info_log(GLuint s)
 	int len = 0;
 	char info_log[2048] = { 0 };
 	glGetShaderInfoLog(s, max_length, &len, info_log);
-	log("Shader info: %s.\n", info_log);
+	log("Shader info: %s\n", info_log);
 }
 
 static void program_info_log(GLuint s)
@@ -32,7 +32,7 @@ static void program_info_log(GLuint s)
 	int len = 0;
 	char info_log[2048] = { 0 };
 	glGetProgramInfoLog(s, max_length, &len, info_log);
-	log("Program info: %s.\n", info_log);
+	log("Program info: %s\n", info_log);
 }
 
 /* Read from file and store in a string */
