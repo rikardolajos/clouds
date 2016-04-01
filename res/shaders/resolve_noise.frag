@@ -118,7 +118,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 1.0;
+	float delta_large = 20.0;
 	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
@@ -215,7 +215,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		/* Calculate the shadows */
 		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
 		//value.rgb = mix(value.rgb, cloud_shade, shade);
-		value.rgb = mix(cloud_dark, cloud_bright, energy);
+		//value.rgb = mix(cloud_dark, cloud_bright, energy);
 		//value.rgb = vec3(energy);
 
 		/* Adaptive step length */
@@ -229,7 +229,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	//}
 
 	//length_inside = smoothstep(50, 500, length_inside);
-	value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));
+	//value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));
 	//value.rgb = mix(value.rgb, cloud_dense, length_inside);
 	//value.rgb = mix(value.rgb, cloud_shade, shade);
 
@@ -262,5 +262,5 @@ void main() {
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
 	vec3 t = vec3(texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).b);
 	//t = vec3(coverage(t.r, 0.0));
-	//frag_color = vec4(t, 1.0);
+	//frag_color = vec4(s, 1.0);
 }

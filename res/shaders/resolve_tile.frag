@@ -46,9 +46,16 @@ float cloud_sampling_structure(vec3 v, float delta) {
 }
 
 float cloud_sampling_tile(float tile, vec3 v, float delta) {
+	/* Reposition the tile first */
+	v = (v + vec3(500, -50, 500)) * 0.256;
 
 	if (tile * 255 == 1) {
-		return texture(cloud_tile00, v * 0.25).r * delta;
+		return texture(cloud_tile00, v).r * delta;
+	}
+
+	if (tile * 255 == 255) {
+		/* This is the safety tile that surrounds all non-zero tiles */
+		//return 0.08 * delta;
 	}
 
 	return 0;
@@ -76,8 +83,8 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 1.0;
-	float delta_small = 0.5;
+	float delta_large = 3.9;
+	float delta_small = 0.1;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
 
