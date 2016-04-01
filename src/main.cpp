@@ -27,7 +27,7 @@
 #define FULLSCREEN 0
 #define VERTICAL_SYNC 0
 
-#define CLOUD_TILE 1
+#define CLOUD_TILE 0
 
 #if FULLSCREEN
 	#define SCREEN_WIDTH 1920
@@ -190,7 +190,7 @@ int main(int argc, char** argv)
 
 #if CLOUD_TILE
 	/* Preprocess for the tile based clouds */
-	log("\nPreprocessing cloud (tile based) structure...\n");
+	log("\nPreprocessing cloud structure (tile based)...\n");
 	Texture cloud_structure;
 	Texture cloud_tiles[5];
 	cloud_tiling_init(cloud_tiles, &cloud_structure);
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
 	shader_send_texture3D(resolve_shader, cloud_tiles[0], "cloud_tile00");
 #else
 	/* Preprocess the structure of the noise based clouds */
-	log("\nPreprocessing cloud (noise based) structure...\n");
+	log("\nPreprocessing cloud structure (noise based)...\n");
 	Texture cloud_structure_texture;
 	cloud_preprocess(&cloud_structure_texture, cloud_texture);
 
@@ -250,8 +250,14 @@ int main(int argc, char** argv)
 					shader_recompile();
 
 					/* Send textures to shaders */
+#if CLOUD_TILE
+					
 					shader_send_texture3D(resolve_shader, cloud_structure, "cloud_structure");
 					shader_send_texture3D(resolve_shader, cloud_tiles[0], "cloud_tile00");
+#else
+					shader_send_texture3D(resolve_shader, cloud_texture, "cloud_texture");
+					shader_send_texture3D(resolve_shader, cloud_structure_texture, "cloud_structure");
+#endif
 					shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
 					shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
 				}
