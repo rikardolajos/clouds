@@ -38,7 +38,10 @@ float phase(vec3 v1, vec3 v2) {
 }
 
 float cloud_sampling_structure(vec3 v, float delta) {
-	vec4 texture = texture(cloud_structure, v / 1024);
+	/* Reposition the cloud first */
+	v = (v + vec3(500, -50, 500)) * 0.001;
+
+	vec4 texture = texture(cloud_structure, v);
 	return texture.r;
 }
 
