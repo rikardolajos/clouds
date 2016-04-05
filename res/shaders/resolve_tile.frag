@@ -163,9 +163,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		//value.rgb = mix(cloud_dark, cloud_bright, energy);
 	}
 
-	value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));
-
-	return value;
+	return clamp(value, 0.0, 1.0);
 }
 
 void main() {
