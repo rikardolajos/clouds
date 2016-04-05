@@ -57,16 +57,21 @@ float coverage(float t, float y) {
 }
 
 float cloud_sampling_lowres(vec3 v, float delta) {
-	vec4 texture = texture(cloud_structure, v / 400);
+	/* Reposition the cloud first */
+	//v = (v + vec3(500, -50, 500)) * 0.001;
+
+	vec4 texture = texture(cloud_structure, v / 800);
 	float height = height_stratus(v.y, true);
 
 	return texture.r * height;
 }
 
 float cloud_sampling(vec3 v, float delta) {
+	/* Reposition the cloud first */
+	//v = (v + vec3(500, -50, 500)) * 0.001;
 
-	vec4 textureA = texture(cloud_texture, v / 400);
-	vec4 textureB = texture(cloud_texture, v / 50);
+	vec4 textureA = texture(cloud_texture, v / 800);
+	vec4 textureB = texture(cloud_texture, v / 70);
 
 	float coverage = coverage(textureA.r, v.y);
 	float height = height_stratus(v.y, false);
@@ -118,7 +123,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 20.0;
+	float delta_large = 1.0;
 	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
@@ -138,8 +143,6 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
-	//vec3 inside_start = vec3(0.0);
-	//vec3 inside_end = vec3(0.0);
 	bool inside = false;
 	bool looking_for_new_inside = true;
 	int points_inside = 0;
@@ -154,23 +157,15 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			break;
 		}
 
-		/* Stop rays that already reach full opacity */
-		if (value.a > 1.0) {
+		/* Stop rays that already reached full opacity */
+		if (value.a > 1) {
 			break;
 		}
-
-		/* Don't start new clouds if we are close to the top */
-		//if (inside && points_outside > 20 && sample_point.y > 100) {
-		//	break;
-		//}
-
-		/* Pull down the horizon to get a better looking sky (does not work with phase function!) */
-		//sample_point.y += 0.1 * t; 
 
 		float alpha;
 		if (!inside) {
 			alpha = cloud_sampling_lowres(sample_point, delta);
-			if (alpha > 0.0) {
+			if (alpha > 0.1) {
 				inside = true;
 			} else {
 				looking_for_new_inside = true;
@@ -187,7 +182,6 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 				}
 				sample_point = origin + dir * t;
 				delta = delta_small;
-				//inside_start = sample_point;
 				looking_for_new_inside = false;
 				points_inside = 0;
 			}
@@ -198,42 +192,26 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		}
 
 		/* Check next structure block if we are still inside */
-		if (inside && points_inside * delta_small > delta_large) {
+		if (inside && (points_inside * delta_small) > delta_large) {
 			alpha = cloud_sampling_lowres(sample_point, delta);
 			if (alpha == 0.0) {
 				inside = false;
 				looking_for_new_inside = true;
-				//inside_end = sample_point;
-				//length_inside += length(inside_end - inside_start) * value.a;
 				delta = delta_large;
-			} else {
-				points_inside = 0;
 			}
+			points_inside = 0;
 		}
 
 
 		/* Calculate the shadows */
 		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
-		//value.rgb = mix(value.rgb, cloud_shade, shade);
 		//value.rgb = mix(cloud_dark, cloud_bright, energy);
-		//value.rgb = vec3(energy);
 
 		/* Adaptive step length */
 		//delta_small = 0.02 * t;
 	}
 
-	/* If we reached last step before exiting a cloud, we need to close off the sampling */
-	//if (inside) {
-	//	inside_end = sample_point;
-	//	length_inside += length(inside_end - inside_start) * value.a;
-	//}
-
-	//length_inside = smoothstep(50, 500, length_inside);
-	//value.rgba = clamp(value.rgba, vec4(0.0), vec4(1.0));
-	//value.rgb = mix(value.rgb, cloud_dense, length_inside);
-	//value.rgb = mix(value.rgb, cloud_shade, shade);
-
-	return value;
+	return clamp(value, 0.0, 1.0);
 }
 
 void main() {
@@ -260,7 +238,7 @@ void main() {
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	vec3 t = vec3(texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).b);
-	//t = vec3(coverage(t.r, 0.0));
-	//frag_color = vec4(s, 1.0);
+	vec3 t = vec3(texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
+	t = vec3(coverage(t.r, 0.5));
+	//frag_color = vec4(t, 0.5);
 }
