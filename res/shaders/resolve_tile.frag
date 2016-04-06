@@ -48,6 +48,7 @@ float cloud_sampling_structure(vec3 v, float delta) {
 float cloud_sampling_tile(float tile, vec3 v, float delta) {
 	/* Reposition the tile first */
 	v = (v + vec3(500, -50, 500)) * 0.256;
+	v = fract(v);
 
 	if (tile * 255 == 1) {
 		return texture(cloud_tile00, v).r * delta;
@@ -55,7 +56,7 @@ float cloud_sampling_tile(float tile, vec3 v, float delta) {
 
 	if (tile * 255 == 255) {
 		/* This is the safety tile that surrounds all non-zero tiles */
-		//return 0.08 * delta;
+		return 0.008 * delta;
 	}
 
 	return 0;
@@ -83,7 +84,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 3.9;
+	float delta_large = 10.0;
 	float delta_small = 0.1;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
@@ -104,7 +105,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	float delta = delta_large;
 	for (float t = start; t < end; t += delta) {
 		sample_point = origin + dir * t;
-
+		
 		/* Stop rays that are going below ground */
 		if (sample_point.y < 0.0) {
 			break;
@@ -139,7 +140,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 				looking_for_new_tile = false;
 				points_inside = 0;
 			}
-			
+			delta = delta_small;
 			alpha = cloud_sampling_tile(tile, sample_point, delta);
 			value.a += alpha;
 			points_inside += 1;
@@ -158,7 +159,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			}
 		}
 
-		/* Calculate the shadows */
+		/* Calculate the scattering */
 		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
 		//value.rgb = mix(cloud_dark, cloud_bright, energy);
 	}
@@ -185,4 +186,6 @@ void main() {
 
 	frag_color.a = 1.0;
 	frag_color.rgb = mix(diffuse_color.rgb, cloud_color.rgb, cloud_color.a);
+
+	//frag_color.rgb = texture(cloud_structure, vec3(gl_FragCoord.xy / view_port.xy, 0.5)).rrr;
 }

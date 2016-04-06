@@ -9,10 +9,9 @@
 #include <stdio.h>
 
 /* 1 = inside cloud, else 0 */
-GLubyte structure(GLubyte pixel, int x, int y, int z)
+GLubyte structure(GLubyte pixel)
 {
-	float limit = glm::mix(0.2, 0.63, glm::smoothstep(0.0, 32.0, (double)y / 128));
-	if (pixel / 255.0 > limit) {
+	if (pixel / 255.0 > 0.63) {
 		return 1;
 	}
 	return 0;
@@ -30,19 +29,10 @@ int cloud_preprocess(Texture* cloud_structure, Texture source)
 	cloud_structure->height = 32;
 	cloud_structure->depth = 32;
 
-	/* Pick the red channel */
+	/* Pick the red channel and procces it */
 	GLubyte* temp = (GLubyte*)malloc(source.width * source.height * source.depth * sizeof(GLubyte));
 	for (int i = 0; i < source.width * source.height * source.depth; i++) {
-		temp[i] = cloud_pixels[i * 4];
-	}
-
-	/* Process the cloud structure */
-	for (int i = 0; i < source.width; i++) {
-		for (int j = 0; j < source.height; j++) {
-			for (int k = 0; k < source.depth; k++) {
-				temp[k + j * source.height + i * source.height * source.depth] = structure(temp[k + j * source.height + i * source.height * source.depth], i, j, k);
-			}
-		}
+		temp[i] = structure(cloud_pixels[i * 4]);
 	}
 
 	GLubyte* new_structure = (GLubyte*)malloc(cloud_structure->width * cloud_structure->height * cloud_structure->depth * sizeof(GLubyte));

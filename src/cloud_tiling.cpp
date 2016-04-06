@@ -31,7 +31,7 @@ int cloud_tiling_structure(Texture* cloud_structure)
 	}
 
 	/* Post process -- expanding the structure to reduce artifacts */
-	GLubyte* post_pixels = (GLubyte*)malloc(cloud_structure->width * cloud_structure->height * cloud_structure->depth * sizeof(GLubyte));
+	GLubyte* post_pixels = (GLubyte*)calloc(cloud_structure->width * cloud_structure->height * cloud_structure->depth, sizeof(GLubyte));
 
 	for (int i = 0; i < cloud_structure->width; i++) {
 		for (int j = 0; j < cloud_structure->height; j++) {
@@ -41,11 +41,11 @@ int cloud_tiling_structure(Texture* cloud_structure)
 					continue;
 				}
 
-				for (int ii = -1; ii < 2; ii++) {
+				for (int ii = -10; ii < 11; ii++) {
 					if (i + ii < 0 || i + ii >= cloud_structure->width) continue;
-					for (int jj = -1; jj < 2; jj++) {
+					for (int jj = -10; jj < 11; jj++) {
 						if (j + jj < 0 || j + jj >= cloud_structure->height) continue;
-						for (int kk = -1; kk < 2; kk++) {
+						for (int kk = -10; kk < 11; kk++) {
 							if (k + kk < 0 || k + kk >= cloud_structure->depth) continue;
 
 							GLubyte p = pixels[(k + kk) + (j + jj) * cloud_structure->height + (i + ii) * cloud_structure->height * cloud_structure->depth];
@@ -68,7 +68,7 @@ int cloud_tiling_structure(Texture* cloud_structure)
 	/* Give it an index */
 	texture_activate(cloud_structure);
 
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, cloud_structure->width, cloud_structure->height, cloud_structure->depth, 0, GL_RED, GL_UNSIGNED_BYTE, post_pixels);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, cloud_structure->width, cloud_structure->height, cloud_structure->depth, 0, GL_RED, GL_UNSIGNED_BYTE, post_pixels);
 	glGenerateMipmap(GL_TEXTURE_3D);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -115,9 +115,9 @@ int cloud_tiling_init(Texture cloud_tiles[], Texture* cloud_structure)
 	glGenerateMipmap(GL_TEXTURE_3D);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 
 	free(pixels);
 

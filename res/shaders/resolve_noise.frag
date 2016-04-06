@@ -123,7 +123,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
-	float delta_large = 1.0;
+	float delta_large = 20.0;
 	float delta_small = 1.0;
 	float start = gl_DepthRange.near;
 	float end = 500.0;
@@ -165,7 +165,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		float alpha;
 		if (!inside) {
 			alpha = cloud_sampling_lowres(sample_point, delta);
-			if (alpha > 0.1) {
+			if (alpha > 0.01) {
 				inside = true;
 			} else {
 				looking_for_new_inside = true;
@@ -203,9 +203,9 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		}
 
 
-		/* Calculate the shadows */
+		/* Calculate the scattering */
 		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
-		//value.rgb = mix(cloud_dark, cloud_bright, energy);
+		value.rgb = mix(cloud_dark, cloud_bright, energy);
 
 		/* Adaptive step length */
 		//delta_small = 0.02 * t;
