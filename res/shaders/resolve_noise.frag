@@ -52,8 +52,6 @@ float coverage(float t, float y) {
 }
 
 float cloud_sampling_lowres(vec3 v, float delta) {
-	/* Reposition the cloud first */
-	//v = (v + vec3(500, -50, 500)) * 0.001;
 
 	vec4 texture = texture(cloud_structure, v / 800);
 	float height = height_stratus(v.y, true);
@@ -62,11 +60,9 @@ float cloud_sampling_lowres(vec3 v, float delta) {
 }
 
 float cloud_sampling(vec3 v, float delta) {
-	/* Reposition the cloud first */
-	//v = (v + vec3(500, -50, 500)) * 0.001;
 
 	vec4 textureA = texture(cloud_texture, v / 800);
-	vec4 textureB = texture(cloud_texture, v / 70);
+	vec4 textureB = texture(cloud_texture, v / 120);
 
 	float coverage = coverage(textureA.r, v.y);
 	float height = height_stratus(v.y, false);
@@ -94,6 +90,7 @@ float cloud_sampling1(vec3 v, float delta) {
 	}
 	return 0.0;
 }
+/******     Kub och sfär    ******/
 
 float cast_scatter_ray(vec3 origin, vec3 dir) {
 	float delta = 5.0;
@@ -109,9 +106,8 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 		inside += cloud_sampling(sample_point, delta);
 	}
 
-	float beer = exp(-0.2 * inside);
+	float beer = exp(-0.24 * inside);
 
-	//float value = clamp(smaoothstep(20, 50, inside), 0.0, 1.0);
 	float value = phase + beer;
 	return value;
 }	
@@ -124,17 +120,8 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	float end = 500.0;
 
 	vec4 value = vec4(0.0);
-	vec3 cloud_color = vec3(0.93, 0.93, 0.95);
-	vec3 cloud_shade = vec3(0.859, 0.847, 0.757) - 0.1;
 	vec3 cloud_bright = vec3(0.99, 0.96, 0.95);
 	vec3 cloud_dark = vec3(0.671, 0.725, 0.753);
-	//vec3 cloud_dense = vec3(0.98);
-	value.rgb = cloud_dark;
-
-	/* Test colors */
-	//cloud_color = vec3(1.0, 0.5, 0.0);
-	//cloud_shade = vec3(1.0, 0.0, 1.0);
-	//cloud_dense = vec3(0.0, 1.0, 0.0);
 	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
@@ -203,7 +190,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		value.rgb = mix(cloud_dark, cloud_bright, energy);
 
 		/* Adaptive step length */
-		//delta_small = 0.02 * t;
+		delta_small = 0.02 * t;
 	}
 
 	return clamp(value, 0.0, 1.0);
@@ -233,7 +220,7 @@ void main() {
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5)).rrr;
-	//t = vec3(coverage(t.r, 0.5));
-	//frag_color = vec4(s, 1.0);
+	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.4)).rrr;
+	t = vec3(coverage(t.r, 0.5));
+	//frag_color = vec4(t, 1.0);
 }
