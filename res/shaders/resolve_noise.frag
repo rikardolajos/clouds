@@ -105,10 +105,10 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 		sample_point = origin + dir * t;
 		inside += cloud_sampling(sample_point, delta);
 	}
+	//exp(-0.1 * inside)
+	float scatter = (1.0 - exp(-1.0 * inside));
 
-	float beer = exp(-0.24 * inside);
-
-	float value = phase + beer;
+	float value = 0.5 * phase + 0.5 * scatter;
 	return value;
 }	
 
@@ -121,7 +121,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 	vec4 value = vec4(0.0);
 	vec3 cloud_bright = vec3(0.99, 0.96, 0.95);
-	vec3 cloud_dark = vec3(0.671, 0.725, 0.753);
+	vec3 cloud_dark = vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
 	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
@@ -190,7 +190,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		value.rgb = mix(cloud_dark, cloud_bright, energy);
 
 		/* Adaptive step length */
-		delta_small = 0.02 * t;
+		delta_small = t > 50? 0.02 * t : 1.0;
 	}
 
 	return clamp(value, 0.0, 1.0);
