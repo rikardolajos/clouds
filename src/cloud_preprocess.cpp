@@ -11,7 +11,7 @@
 /* 1 = inside cloud, else 0 */
 GLubyte structure(GLubyte pixel)
 {
-	if (pixel / 255.0 > 0.63) {
+	if (pixel / 255.0 > 0.21) {
 		return 1;
 	}
 	return 0;
@@ -107,7 +107,7 @@ int cloud_preprocess(Texture* cloud_structure, Texture source)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
 	free(cloud_pixels);

@@ -4,11 +4,6 @@ layout(location = 0) in vec3 vertex_pos;
 
 out vec4 frag_color;
 
-/////////////////////////////////
-//uniform sampler3D perlin1;
-//uniform sampler2D terrain_texture;
-/////////////////////////////////
-
 uniform sampler1D mie_texture;
 uniform sampler3D cloud_texture;
 uniform sampler3D cloud_structure;
@@ -53,7 +48,7 @@ float height_stratus(float y, bool low_res) {
 
 float coverage(float t, float y) {
 	/* The lower level must be same as the value in the preprocessors structure function */
-	return smoothstep(0.63, 0.65, t); 
+	return smoothstep(0.21, 0.33, t); 
 }
 
 float cloud_sampling_lowres(vec3 v, float delta) {
@@ -238,7 +233,7 @@ void main() {
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	vec3 t = vec3(texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	t = vec3(coverage(t.r, 0.5));
-	//frag_color = vec4(t, 0.5);
+	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5)).rrr;
+	//t = vec3(coverage(t.r, 0.5));
+	//frag_color = vec4(s, 1.0);
 }
