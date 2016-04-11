@@ -11,7 +11,7 @@
 /* 1 = inside cloud, else 0 */
 GLubyte structure(GLubyte pixel)
 {
-	if (pixel / 255.0 > 0.21) {
+	if (pixel / 255.0 > 0.35) {
 		return 1;
 	}
 	return 0;

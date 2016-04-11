@@ -22,7 +22,7 @@ float PI = 3.1415962;
 float PI_r = 0.3183098;
 
 float HG(float costheta) {
-	float g = 0.99;
+	float g = 0.75;
 	return 0.25 * PI_r * (1 - pow(g, 2.0)) / pow((1 + pow(g, 2.0) - 2 * g * costheta), 1.5);
 }
 
@@ -46,28 +46,32 @@ float height_stratus(float y, bool low_res) {
 	return smoothstep(bottom, bottom + 60, y) - smoothstep(top - 20, top, y);
 }
 
-float coverage(float t, float y) {
+float coverage(float t) {
 	/* The lower level must be same as the value in the preprocessors structure function */
-	return smoothstep(0.21, 0.33, t); 
+	return smoothstep(0.35, 0.4, t); 
 }
 
 float cloud_sampling_lowres(vec3 v, float delta) {
 
+	v.y -= 80;
+	
 	vec4 texture = texture(cloud_structure, v / 800);
 	float height = height_stratus(v.y, true);
 
-	return texture.r * height;
+	return texture.r;// * height;
 }
 
 float cloud_sampling(vec3 v, float delta) {
 
+	v.y -= 80;
+
 	vec4 textureA = texture(cloud_texture, v / 800);
 	vec4 textureB = texture(cloud_texture, v / 120);
 
-	float coverage = coverage(textureA.r, v.y);
+	float coverage = coverage(textureA.r);
 	float height = height_stratus(v.y, false);
 
-	return textureA.g * coverage * height * delta * 0.4 * textureB.b;
+	return textureA.g * coverage * delta * 0.4 * textureB.b;// * height;
 }
 
 /******     Kub och sfär    ******/
@@ -93,7 +97,7 @@ float cloud_sampling1(vec3 v, float delta) {
 /******     Kub och sfär    ******/
 
 float cast_scatter_ray(vec3 origin, vec3 dir) {
-	float delta = 5.0;
+	float delta = 10.0;
 	float end = 50.0;
 
 	vec3 sample_point = vec3(0.0);
@@ -106,9 +110,10 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 		inside += cloud_sampling(sample_point, delta);
 	}
 	//exp(-0.1 * inside)
-	float scatter = (1.0 - exp(-1.0 * inside));
+	//float scatter = (1.0 - exp(-1.0 * inside));
+	float scatter = exp(-0.1 * inside); // (1.0 - exp(-5.2 * inside)) * exp(-0.1 * inside);
 
-	float value = 0.5 * phase + 0.5 * scatter;
+	float value = scatter;
 	return value;
 }	
 
@@ -121,7 +126,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 	vec4 value = vec4(0.0);
 	vec3 cloud_bright = vec3(0.99, 0.96, 0.95);
-	vec3 cloud_dark = vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
+	vec3 cloud_dark = vec3(0.416, 0.518, 0.587);//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
 	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
@@ -187,10 +192,10 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 		/* Calculate the scattering */
 		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
-		value.rgb = mix(cloud_dark, cloud_bright, energy);
+		value.rgb = mix(cloud_dark, cloud_bright, clamp(energy, 0.0, 1.0));
 
 		/* Adaptive step length */
-		delta_small = t > 50? 0.02 * t : 1.0;
+		//delta_small = t > 50? 0.02 * t : 1.0;
 	}
 
 	return clamp(value, 0.0, 1.0);
@@ -220,7 +225,7 @@ void main() {
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.4)).rrr;
-	t = vec3(coverage(t.r, 0.5));
+	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.3)).rrr;
+	t = vec3(coverage(t.r));
 	//frag_color = vec4(t, 1.0);
 }

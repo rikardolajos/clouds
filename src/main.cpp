@@ -172,7 +172,7 @@ int main(int argc, char** argv)
 
 	log("Loading 3D cloud texture...\n");
 	Texture cloud_texture;
-	if (texture3D_from_ex5(&cloud_texture, "./res/textures/noise1.ex5") != 0) {
+	if (texture3D_from_ex5(&cloud_texture, "./res/textures/noise2.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
