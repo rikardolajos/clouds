@@ -54,10 +54,10 @@ float cloud_sampling(vec3 v, float delta) {
 
 	vec4 textureA = texture(cloud_texture, v / 600);
 
-	float coverage = coverage(textureA.g);
+	float coverage = coverage(textureA.r);
 	float bottom = smoothstep(0, 80, v.y);
 
-	return textureA.g * coverage * bottom * delta * 1;
+	return textureA.r * coverage * bottom * delta * 1;
 }
 
 /******     Kub och sfär    ******/
