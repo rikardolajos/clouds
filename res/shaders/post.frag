@@ -11,11 +11,11 @@ void main() {
 	vec3 hdrColor = texelFetch(HDR_buffer, ivec2(gl_FragCoord.xy), 0).rgb;
 	
 	// Reinhard tone mapping
-	//vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
+	vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
 	// Exposure tone mapping
-	vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
+	//vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
 	// Gamma correction 
 	mapped = pow(mapped, vec3(1.0 / gamma));
 	
-	frag_color = vec4(mapped, 1.0);
+	frag_color = vec4(hdrColor, 1.0);
 }
