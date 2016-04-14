@@ -15,7 +15,7 @@ void main () {
 	vec3 terrain = 0.9 * vec3(0.45, 0.58, 0.2) + clamp(height, -0.8, 1.0) * vec3(0.3, 0.3, 0.1) * 1.5 * texture(terrain_texture, uv * 100).rgb;
 	//terrain = vec3(0.0);
 	vec3 color = terrain + fog;
-	fcolor = vec4(color, smoothstep(580, 330, dist));
+	fcolor = vec4(color, smoothstep(580, 330, dist)) * 1.1;
 	//fcolor = vec4(uv.xy, 0, 1);
 
 	/* Grid */

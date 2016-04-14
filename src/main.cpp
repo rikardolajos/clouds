@@ -142,7 +142,7 @@ int main(int argc, char** argv)
 #endif
 
 	Shader hdr_shader;
-	if (shader_init(&hdr_shader, "./res/shaders/hdr.vert", "./res/shaders/hdr.frag") != 0) {
+	if (shader_init(&hdr_shader, "./res/shaders/post.vert", "./res/shaders/post.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
@@ -153,7 +153,7 @@ int main(int argc, char** argv)
 
 	/* Initialize fullscreen HDR quad */
 	FS_Quad fs_quad_HDR;
-	fs_quad_init_HDR(&fs_quad_HDR, SCREEN_WIDTH, SCREEN_HEIGHT, hdr_shader);
+	fs_quad_init(&fs_quad_HDR, SCREEN_WIDTH, SCREEN_HEIGHT, hdr_shader);
 	log_opengl_error();
 
 	/* Load models */

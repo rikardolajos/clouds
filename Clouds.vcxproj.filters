@@ -48,10 +48,10 @@
     <None Include="res\shaders\resolve_tile.frag">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="res\shaders\hdr.frag">
+    <None Include="res\shaders\post.frag">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="res\shaders\hdr.vert">
+    <None Include="res\shaders\post.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>

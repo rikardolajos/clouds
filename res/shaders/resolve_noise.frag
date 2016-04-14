@@ -57,7 +57,7 @@ float cloud_sampling(vec3 v, float delta) {
 	float coverage = coverage(textureA.r);
 	float bottom = smoothstep(0, 80, v.y);
 
-	return textureA.r * coverage * bottom * delta * 1;
+	return textureA.r * coverage * bottom * delta * pow(textureA.b, 0.2) * pow(textureA.a, 0.7);
 }
 
 /******     Kub och sfär    ******/
@@ -96,9 +96,9 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 		inside += cloud_sampling(sample_point, delta);
 	}
 
-	float scatter = exp(-0.2 * inside); // (1.0 - exp(-1.0 * inside));
+	float scatter =   exp(-0.2 * inside); // (1.0 - exp(-1.4 * inside)) *
 
-	float value = scatter + phase ;
+	float value = scatter + phase;
 	return value;
 }	
 
@@ -111,7 +111,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 	vec4 value = vec4(0.0);
 	vec3 cloud_bright = vec3(0.99, 0.96, 0.95);
-	vec3 cloud_dark = vec3(0.416, 0.518, 0.587);//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
+	vec3 cloud_dark = vec3(0.416, 0.518, 0.587) + 0.1;//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
 	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
