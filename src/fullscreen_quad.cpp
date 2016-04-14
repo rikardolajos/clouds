@@ -143,10 +143,10 @@ void fs_quad_set_as_render_target(FS_Quad q)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void fs_quad_render_to_HDR(FS_Quad q)
+void fs_quad_render_to_HDR(FS_Quad q, FS_Quad hdr)
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, q.screen_width, q.screen_height);
+	glBindFramebuffer(GL_FRAMEBUFFER, hdr.framebuffer_object);
+	glViewport(0, 0, hdr.screen_width, hdr.screen_height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(q.shader.shader_program);
@@ -176,7 +176,7 @@ void fs_quad_render_to_screen(FS_Quad q)
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, q.diffuse_texture);
 	GLuint diffuse = glGetUniformLocation(q.shader.shader_program, "HDR_buffer");
-	glUniform1i(diffuse, 0);
+	glUniform1i(diffuse, 2);
 
 	glBindVertexArray(q.vertex_array_object);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

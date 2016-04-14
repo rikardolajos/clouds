@@ -153,7 +153,7 @@ int main(int argc, char** argv)
 
 	/* Initialize fullscreen HDR quad */
 	FS_Quad fs_quad_HDR;
-	fs_quad_init_HDR(&fs_quad, SCREEN_WIDTH, SCREEN_HEIGHT, hdr_shader);
+	fs_quad_init_HDR(&fs_quad_HDR, SCREEN_WIDTH, SCREEN_HEIGHT, hdr_shader);
 	log_opengl_error();
 
 	/* Load models */
@@ -316,15 +316,14 @@ int main(int argc, char** argv)
 		shader_uniform_vec3(resolve_shader, camera.position, "camera_pos");
 		shader_uniform_vec3(resolve_shader, sun.position, "sun_pos");
 
-		
-
 		/* OpenGL rendering */
 		fs_quad_set_as_render_target(fs_quad);
 
 		model_render(sky_model);
 		model_render(terrain_model);
 
-		fs_quad_render_to_screen(fs_quad);
+		fs_quad_render_to_HDR(fs_quad, fs_quad_HDR);
+		fs_quad_render_to_screen(fs_quad_HDR);
 
 		SDL_GL_SwapWindow(window);
 	}
