@@ -39,7 +39,7 @@ float phase(vec3 v1, vec3 v2) {
 
 float coverage(float t) {
 	/* The lower level must be same as the value in the preprocessors structure function */
-	return smoothstep(0.35, 0.4, t); 
+	return smoothstep(0.35, 0.4, t) * t;
 }
 
 float cloud_sampling_lowres(vec3 v, float delta) {
@@ -96,7 +96,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 		inside += cloud_sampling(sample_point, delta);
 	}
 
-	float scatter = exp(-0.1 * inside); // (1.0 - exp(-1.0 * inside));
+	float scatter = exp(-0.2 * inside); // (1.0 - exp(-1.0 * inside));
 
 	float value = scatter + phase ;
 	return value;
@@ -210,7 +210,7 @@ void main() {
 	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5)).rrr;
+	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).rrr;
 	t = vec3(coverage(t.r));
 	//frag_color = vec4(t, 1.0);
 }
