@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdint.h>
 
-static int active_textures = 2;		/* The fullscreen-quad uses two textures */
+static int active_textures = 4;		/* The fullscreen-quad uses two textures and HDR-buffer two */
 
 void texture_activate(Texture* t)
 {

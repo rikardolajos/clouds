@@ -141,9 +141,19 @@ int main(int argc, char** argv)
 	}
 #endif
 
+	Shader hdr_shader;
+	if (shader_init(&hdr_shader, "./res/shaders/hdr.vert", "./res/shaders/hdr.frag") != 0) {
+		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
+	}
+
 	/* Initialize fullscreen quad */
 	FS_Quad fs_quad;
 	fs_quad_init(&fs_quad, SCREEN_WIDTH, SCREEN_HEIGHT, resolve_shader);
+	log_opengl_error();
+
+	/* Initialize fullscreen HDR quad */
+	FS_Quad fs_quad_HDR;
+	fs_quad_init_HDR(&fs_quad, SCREEN_WIDTH, SCREEN_HEIGHT, hdr_shader);
 	log_opengl_error();
 
 	/* Load models */
@@ -172,7 +182,7 @@ int main(int argc, char** argv)
 
 	log("Loading 3D cloud texture...\n");
 	Texture cloud_texture;
-	if (texture3D_from_ex5(&cloud_texture, "./res/textures/noise2.ex5") != 0) {
+	if (texture3D_from_ex5(&cloud_texture, "./res/textures/noise3.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 

@@ -83,6 +83,8 @@
   <ItemGroup>
     <None Include="..\res\models\sky.blend" />
     <None Include="..\res\models\terrain.blend" />
+    <None Include="res\shaders\hdr.frag" />
+    <None Include="res\shaders\hdr.vert" />
     <None Include="res\shaders\resolve.vert" />
     <None Include="res\shaders\resolve_noise.frag" />
     <None Include="res\shaders\resolve_tile.frag" />

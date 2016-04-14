@@ -48,6 +48,12 @@
     <None Include="res\shaders\resolve_tile.frag">
       <Filter>Resource Files\shaders</Filter>
     </None>
+    <None Include="res\shaders\hdr.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shaders\hdr.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\res\window_icon.bmp">

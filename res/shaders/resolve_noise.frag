@@ -54,10 +54,10 @@ float cloud_sampling(vec3 v, float delta) {
 
 	vec4 textureA = texture(cloud_texture, v / 600);
 
-	float coverage = coverage(textureA.r);
+	float coverage = coverage(textureA.g);
 	float bottom = smoothstep(0, 80, v.y);
 
-	return textureA.g * coverage * bottom * delta * 1 * textureA.b * textureA.a;
+	return textureA.g * coverage * bottom * delta * 1;
 }
 
 /******     Kub och sfär    ******/
@@ -211,6 +211,6 @@ void main() {
 	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
 	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).rrr;
-	t = vec3(coverage(t.r));
+	//t = vec3(coverage(t.r));
 	//frag_color = vec4(t, 1.0);
 }
