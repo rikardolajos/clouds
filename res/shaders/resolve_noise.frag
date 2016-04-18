@@ -2,7 +2,8 @@
 
 layout(location = 0) in vec3 vertex_pos;
 
-out vec4 frag_color;
+layout(location = 0) out vec4 frag_color;
+layout(location = 1) out vec4 bright_color;
 
 uniform sampler1D mie_texture;
 uniform sampler3D cloud_texture;

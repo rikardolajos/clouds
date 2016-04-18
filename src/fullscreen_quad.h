@@ -9,6 +9,8 @@ struct FS_Quad {
 	GLuint vertex_array_object;
 	GLuint depth_render_buffer;
 
+	GLuint color_buffers[2];
+
 	int screen_width;
 	int screen_height;
 

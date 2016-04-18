@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 	if (shader_init(&post_shader, "./res/shaders/post.vert", "./res/shaders/post.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
-
+		
 	/* Initialize fullscreen quad */
 	FS_Quad fs_quad;
 	fs_quad_init(&fs_quad, SCREEN_WIDTH, SCREEN_HEIGHT, resolve_shader);
