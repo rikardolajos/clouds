@@ -24,7 +24,7 @@ void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 
 	/* Send an empty texture to OpenGL and set some filtering */
 	glBindTexture(GL_TEXTURE_2D, q->texture.object);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, q->screen_width, q->screen_height, 0, GL_RGB, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, q->screen_width, q->screen_height, 0, GL_RGBA, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -76,10 +76,10 @@ void fs_quad_set_as_render_target(FS_Quad q)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void fs_quad_render_to_HDR(FS_Quad q, FS_Quad hdr)
+void fs_quad_render_to_post(FS_Quad q, FS_Quad post)
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, hdr.framebuffer_object);
-	glViewport(0, 0, hdr.screen_width, hdr.screen_height);
+	glBindFramebuffer(GL_FRAMEBUFFER, post.framebuffer_object);
+	glViewport(0, 0, post.screen_width, post.screen_height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(q.shader.shader_program);

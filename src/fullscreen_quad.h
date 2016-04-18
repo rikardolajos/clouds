@@ -18,7 +18,7 @@ struct FS_Quad {
 
 void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s);
 void fs_quad_set_as_render_target(FS_Quad q);
-void fs_quad_render_to_HDR(FS_Quad q, FS_Quad hdr);
+void fs_quad_render_to_post(FS_Quad q, FS_Quad post);
 void fs_quad_render_to_screen(FS_Quad q);
 
 

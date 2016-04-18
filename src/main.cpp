@@ -141,8 +141,8 @@ int main(int argc, char** argv)
 	}
 #endif
 
-	Shader hdr_shader;
-	if (shader_init(&hdr_shader, "./res/shaders/post.vert", "./res/shaders/post.frag") != 0) {
+	Shader post_shader;
+	if (shader_init(&post_shader, "./res/shaders/post.vert", "./res/shaders/post.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
@@ -151,9 +151,9 @@ int main(int argc, char** argv)
 	fs_quad_init(&fs_quad, SCREEN_WIDTH, SCREEN_HEIGHT, resolve_shader);
 	log_opengl_error();
 
-	/* Initialize fullscreen HDR quad */
-	FS_Quad fs_quad_HDR;
-	fs_quad_init(&fs_quad_HDR, SCREEN_WIDTH, SCREEN_HEIGHT, hdr_shader);
+	/* Initialize fullscreen post quad */
+	FS_Quad fs_quad_post;
+	fs_quad_init(&fs_quad_post, SCREEN_WIDTH, SCREEN_HEIGHT, post_shader);
 	log_opengl_error();
 
 	/* Load models */
@@ -322,8 +322,8 @@ int main(int argc, char** argv)
 		model_render(sky_model);
 		model_render(terrain_model);
 
-		fs_quad_render_to_HDR(fs_quad, fs_quad_HDR);
-		fs_quad_render_to_screen(fs_quad_HDR);
+		fs_quad_render_to_post(fs_quad, fs_quad_post);
+		fs_quad_render_to_screen(fs_quad_post);
 
 		SDL_GL_SwapWindow(window);
 	}
