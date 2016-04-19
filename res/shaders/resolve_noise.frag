@@ -2,7 +2,7 @@
 
 layout(location = 0) in vec3 vertex_pos;
 
-layout(location = 0) out vec4 frag_color;
+layout(location = 0) out vec4 fcolor;
 layout(location = 1) out vec4 bright_color;
 
 uniform sampler1D mie_texture;
@@ -21,6 +21,10 @@ uniform mat4 proj;
 
 float PI = 3.1415962;
 float PI_r = 0.3183098;
+
+float rand(vec2 co){
+  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 
 float HG(float costheta) {
 	float g = 0.9;
@@ -106,13 +110,13 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 // http://www.iquilezles.org/www/articles/terrainmarching/terrainmarching.htm
 vec4 cast_ray(vec3 origin, vec3 dir) {
 	float delta_large = 20.0;
-	float delta_small = 1.0;
+	float delta_small = 1.0 + 0.01 * rand(gl_FragCoord.xy);
 	float start = gl_DepthRange.near;
 	float end = 500.0;
 
 	vec4 value = vec4(0.0);
-	vec3 cloud_bright = vec3(0.99, 0.96, 0.95) * 5;
-	vec3 cloud_dark = vec3(0.416, 0.518, 0.587) * 1.5;//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
+	vec3 cloud_bright = vec3(0.99, 0.96, 0.95);
+	vec3 cloud_dark = vec3(0.416, 0.518, 0.587);//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
 	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
@@ -121,9 +125,14 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	int points_inside = 0;
 	vec3 sample_point = origin;
 
+	bool first = false;
 	float delta = delta_large;
 	for (float t = start; t < end; t += delta) {
 		sample_point = origin + dir * t;
+
+		if (first) {
+			 delta_small = 1.0;
+		}
 
 		/* Stop rays that are going below ground */
 		if (sample_point.y < 0.0) {
@@ -157,6 +166,7 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 				delta = delta_small;
 				looking_for_new_inside = false;
 				points_inside = 0;
+				first = true;
 			}
 			
 			alpha = cloud_sampling(sample_point, delta); /* Comment this line to see cloud structure */
@@ -178,13 +188,13 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 
 		/* Calculate the scattering */
 		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
-		value.rgb = mix(cloud_dark, cloud_bright, energy);
+		//value.rgb += cloud_bright * energy;
 
 		/* Adaptive step length */
 		//delta_small = t > 100? 0.01 * t : 1.0;
 	}
 
-	return value;
+	return clamp(value, 0.0, 1.1);
 }
 
 void main() {
@@ -202,16 +212,16 @@ void main() {
 	vec4 cloud_color = cast_ray(camera_pos, ray_world);
 
 	vec4 diffuse_color = texelFetch(diffuse_buffer, ivec2(gl_FragCoord.xy), 0);
-	float depth = pow(texelFetch(depth_buffer, ivec2(gl_FragCoord.xy), 0).x, 128.0);
+	//float depth = pow(texelFetch(depth_buffer, ivec2(gl_FragCoord.xy), 0).x, 128.0);
 
-	frag_color.a = 1.0;
-	frag_color.rgb = mix(diffuse_color.rgb, cloud_color.rgb, cloud_color.a);
-	//frag_color.rgb = vec3(ray_world);
+	fcolor.a = 1.0;
+	fcolor.rgb = mix(diffuse_color.rgb, cloud_color.rgb, cloud_color.a);
+	//fcolor.rgb = vec3(ray_world);
 
-	//frag_color = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
-	//frag_color = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
+	//fcolor = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
+	//fcolor = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
 	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).rrr;
 	//t = vec3(coverage(t.r));
-	//frag_color = vec4(t, 1.0);
+	//fcolor = vec4(t, 1.0);
 }
