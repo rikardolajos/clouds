@@ -62,7 +62,7 @@ float cloud_sampling(vec3 v, float delta) {
 	float coverage = coverage(textureA.r);
 	float bottom = smoothstep(0, 80, v.y);
 
-	return textureA.r * coverage * bottom * delta * pow(textureA.b, 0.3) * pow(textureA.a, 0.6);
+	return textureA.r * coverage * bottom * delta * pow(textureA.b, 0.3) * pow(textureA.a, 0.4);
 }
 
 /******     Kub och sfär    ******/
@@ -101,7 +101,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir) {
 		inside += cloud_sampling(sample_point, delta);
 	}
 
-	float scatter = exp(-0.3 * inside);
+	float scatter = exp(-0.28 * inside) * (2 - exp(-0.1 * inside));
 
 	float value = scatter + phase;
 	return value;
@@ -115,8 +115,8 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	float end = 500.0;
 
 	vec4 value = vec4(0.0);
-	vec3 cloud_bright = vec3(0.99, 0.96, 0.95);
-	vec3 cloud_dark = vec3(0.416, 0.518, 0.587);//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
+	vec3 cloud_bright = vec3(4.95, 4.8, 4.75);
+	vec3 cloud_dark = vec3(0.624, 0.777, 0.8805);//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
 	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
@@ -171,7 +171,13 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			
 			alpha = cloud_sampling(sample_point, delta); /* Comment this line to see cloud structure */
 			value.a += alpha;
+			value.a = clamp(value.a, 0.0, 1.0);
 			points_inside += 1;
+
+			/* Calculate the scattering */
+			float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
+			float inside_weight = smoothstep(5, 0, points_inside);
+			value.rgb += mix(value.rgb, cloud_bright, energy) * (inside_weight);
 		}
 
 		/* Check next structure block if we are still inside */
@@ -185,16 +191,11 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			points_inside = 0;
 		}
 
-
-		/* Calculate the scattering */
-		float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
-		//value.rgb += cloud_bright * energy;
-
 		/* Adaptive step length */
 		//delta_small = t > 100? 0.01 * t : 1.0;
 	}
 
-	return clamp(value, 0.0, 1.1);
+	return value;
 }
 
 void main() {
