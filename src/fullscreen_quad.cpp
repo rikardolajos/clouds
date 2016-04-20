@@ -7,15 +7,17 @@
 #include <stdlib.h>
 
 /* http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/ */
+/* http://learnopengl.com/#!Advanced-Lighting/HDR */
+/* http://learnopengl.com/#!Advanced-Lighting/Bloom */
 
 void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 {
 	q->screen_width = screen_width;
 	q->screen_height = screen_height;
 	q->shader = s;
+
+	/* Reserve two texture indices */
 	texture_activate(&q->texture);
-	texture_activate(&q->texture);
-	q->texture.index--;
 
 	/* Create framebuffer */
 	glGenFramebuffers(1, &q->framebuffer_object);
@@ -23,10 +25,11 @@ void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 
 	/* Create textures to render to */
 	glGenTextures(2, q->color_buffers);
+	q->texture.object = q->color_buffers[0];
 
 	for (GLuint i = 0; i < 2; i++) {
 		/* Send an empty texture to OpenGL and set some filtering */
-		glBindTexture(GL_TEXTURE_2D, q->color_buffers[i]);
+		glBindTexture(GL_TEXTURE_2D, q->texture.object);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, q->screen_width, q->screen_height, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -34,7 +37,7 @@ void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		/* Set color attachment */
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, q->color_buffers[i], 0);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, q->color_buffers[i], 0);
 	}
 	
 	/* Depth buffer */
@@ -49,7 +52,7 @@ void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 
 	/* Check for errors */
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		log("Error: Framebuffer not created!");
+		log("Error: Framebuffer not created!\n");
 	}
 
 	/* Create fullscreen quad */
