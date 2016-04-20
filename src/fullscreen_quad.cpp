@@ -29,7 +29,7 @@ void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 
 	for (GLuint i = 0; i < 2; i++) {
 		/* Send an empty texture to OpenGL and set some filtering */
-		glBindTexture(GL_TEXTURE_2D, q->texture.object);
+		glBindTexture(GL_TEXTURE_2D, q->color_buffers[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, q->screen_width, q->screen_height, 0, GL_RGBA, GL_FLOAT, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -41,10 +41,10 @@ void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 	}
 	
 	/* Depth buffer */
-	//glGenRenderbuffers(1, &q->depth_render_buffer);
-	//glBindRenderbuffer(GL_RENDERBUFFER, q->depth_render_buffer);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, q->screen_width, q->screen_height);
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, q->depth_render_buffer);
+	glGenRenderbuffers(1, &q->depth_render_buffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, q->depth_render_buffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, q->screen_width, q->screen_height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, q->depth_render_buffer);
 
 	/* Set the list of draw buffers */
 	GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
@@ -76,6 +76,40 @@ void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+}
+
+void fs_quad_pingpong_init(FS_Quad pingpong[2], int screen_width, int screen_height, Shader s)
+{
+	pingpong[0].screen_width = screen_width;
+	pingpong[0].screen_height = screen_height;
+	pingpong[0].shader = s;
+
+	pingpong[1].screen_width = screen_width;
+	pingpong[1].screen_height = screen_height;
+	pingpong[1].shader = s;
+
+
+	glGenFramebuffers(1, &pingpong[0].framebuffer_object);
+	glGenTextures(1, &pingpong[0].texture.object);
+
+	glGenFramebuffers(1, &pingpong[1].framebuffer_object);
+	glGenTextures(1, &pingpong[1].texture.object);
+
+	for (GLuint i = 0; i < 2; i++) {
+		glBindFramebuffer(GL_FRAMEBUFFER, pingpong[i].framebuffer_object);
+		glBindTexture(GL_TEXTURE_2D, pingpong[i].texture.object);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, pingpong[i].screen_width, pingpong[i].screen_height, 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pingpong[i].texture.object, 0);
+	}
+}
+
+void fs_quad_pingpong_render(FS_Quad pingpong[2])
+{
+
 }
 
 void fs_quad_set_as_render_target(FS_Quad q)
