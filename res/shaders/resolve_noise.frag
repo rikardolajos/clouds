@@ -26,9 +26,9 @@ float rand(vec2 co){
   return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-float HG(float costheta) {
+float HG(float costheta, float t) {
 	float g = 0.9;
-	return 0.25 * PI_r * (1 - pow(g, 2.0)) / pow((1 + pow(g, 2.0) - 2 * g * costheta), 1.5);
+	return 1.25 * PI_r * (1 - pow(g, 2.0)) / pow((1 + pow(g, 2.0) - 2 * g * costheta), 1.5) + 0.5;
 }
 
 float Mie(float costheta) {
@@ -36,9 +36,9 @@ float Mie(float costheta) {
 	return texture(mie_texture, (PI - angle) * PI_r).r;
 }
 
-float phase(vec3 v1, vec3 v2) {
+float phase(vec3 v1, vec3 v2, float t) {
 	float costheta = dot(v1, v2) / length(v1) / length(v2);
-	return HG(-costheta);
+	return HG(-costheta, t);
 	//return Mie(costheta);
 }
 
@@ -87,23 +87,23 @@ float cloud_sampling1(vec3 v, float delta) {
 }
 /******     Kub och sfär    ******/
 
-float cast_scatter_ray(vec3 origin, vec3 dir) {
+float cast_scatter_ray(vec3 origin, vec3 dir, float t) {
 	float delta = 10.0;
 	float end = 50.0;
 
 	vec3 sample_point = vec3(0.0);
 	float inside = 0.0;
 
-	float phase = phase(dir, vec3(camera_pos - origin));
+	float phase = phase(dir, vec3(camera_pos - origin), t);
 
 	for (float t = 0.0; t < end; t += delta) {
 		sample_point = origin + dir * t;
 		inside += cloud_sampling(sample_point, delta);
 	}
 
-	float scatter = exp(-0.28 * inside) * (2 - exp(-0.1 * inside));
+	float scatter = 2 * exp(-0.7 * inside) * (1.5 - exp(-0.9 * inside));
 
-	float value = scatter + phase;
+	float value = scatter * phase;
 	return value;
 }	
 
@@ -140,14 +140,15 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 		}
 
 		/* Stop rays that already reached full opacity */
-		if (value.a > 1) {
+		if (value.a == 1.0) {
 			break;
 		}
 
-		float alpha;
+		float alpha = 0.0;
+		float alpha_lowres = 0.0;
 		if (!inside) {
-			alpha = cloud_sampling_lowres(sample_point, delta);
-			if (alpha > 0.01) {
+			alpha_lowres = cloud_sampling_lowres(sample_point, delta);
+			if (alpha_lowres > 0.001) {
 				inside = true;
 			} else {
 				looking_for_new_inside = true;
@@ -174,16 +175,16 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 			value.a = clamp(value.a, 0.0, 1.0);
 			points_inside += 1;
 
-			/* Calculate the scattering */
-			float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point));
+			/* Calculate the shadows and the scattering */
+			float energy = cast_scatter_ray(sample_point, normalize(sun_pos - sample_point), t);
 			float inside_weight = smoothstep(5, 0, points_inside);
-			value.rgb += mix(value.rgb, cloud_bright, energy) * (inside_weight);
+			value.rgb += cloud_bright * energy * alpha;
 		}
 
 		/* Check next structure block if we are still inside */
 		if (inside && (points_inside * delta_small) > delta_large) {
-			alpha = cloud_sampling_lowres(sample_point, delta);
-			if (alpha == 0.0) {
+			alpha_lowres = cloud_sampling_lowres(sample_point, delta);
+			if (alpha_lowres == 0.0) {
 				inside = false;
 				looking_for_new_inside = true;
 				delta = delta_large;
