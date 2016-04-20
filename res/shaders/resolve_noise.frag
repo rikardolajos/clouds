@@ -218,6 +218,14 @@ void main() {
 
 	fcolor.a = 1.0;
 	fcolor.rgb = mix(diffuse_color.rgb, cloud_color.rgb, cloud_color.a);
+
+	float brightness = dot(fcolor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > 10.0) {
+        bright_color = vec4(fcolor.rgb, 1.0);
+	}
+
+	//fcolor = bright_color;
+
 	//fcolor.rgb = vec3(ray_world);
 
 	//fcolor = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);

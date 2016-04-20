@@ -54,6 +54,12 @@
     <None Include="res\shaders\post.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
+    <None Include="res\shaders\blur.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shaders\blur.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\res\window_icon.bmp">

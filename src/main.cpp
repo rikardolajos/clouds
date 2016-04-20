@@ -119,28 +119,39 @@ int main(int argc, char** argv)
 	camera_init(&camera, SCREEN_WIDTH, SCREEN_HEIGHT, CAMERA_FOV, CAMERA_NEAR, CAMERA_FAR);
 
 	/* Initialize shaders */
+	log("Loading sky shader...\n");
 	Shader sky_shader;
 	if (shader_init(&sky_shader, "./res/shaders/sky.vert", "./res/shaders/sky.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
+	log("Loading terrain shader...\n");
 	Shader terrain_shader;
 	if (shader_init(&terrain_shader, "./res/shaders/terrain.vert", "./res/shaders/terrain.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
 #if CLOUD_TILE
+	log("Loading resolve shader (tile based)...\n");
 	Shader resolve_shader;
 	if (shader_init(&resolve_shader, "./res/shaders/resolve.vert", "./res/shaders/resolve_tile.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 #else
+	log("Loading resolve shader (noise based)...\n");
 	Shader resolve_shader;
 	if (shader_init(&resolve_shader, "./res/shaders/resolve.vert", "./res/shaders/resolve_noise.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 #endif
 
+	log("Loading blur shader...\n");
+	Shader blur_shader;
+	if (shader_init(&blur_shader, "./res/shaders/blur.vert", "./res/shaders/blur.frag") != 0) {
+		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
+	}
+
+	log("Loading post shader...\n");
 	Shader post_shader;
 	if (shader_init(&post_shader, "./res/shaders/post.vert", "./res/shaders/post.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
@@ -149,6 +160,11 @@ int main(int argc, char** argv)
 	/* Initialize fullscreen quad */
 	FS_Quad fs_quad;
 	fs_quad_init(&fs_quad, SCREEN_WIDTH, SCREEN_HEIGHT, resolve_shader);
+	log_opengl_error();
+
+	/* Initialize pingpong quad */
+	FS_Quad fs_quad_pingpong[2];
+	fs_quad_pingpong_init(fs_quad_pingpong, SCREEN_WIDTH, SCREEN_HEIGHT, blur_shader);
 	log_opengl_error();
 
 	/* Initialize fullscreen post quad */
@@ -182,7 +198,7 @@ int main(int argc, char** argv)
 
 	log("Loading 3D cloud texture...\n");
 	Texture cloud_texture;
-	if (texture3D_from_ex5(&cloud_texture, "./res/textures/noise3.ex5") != 0) {
+	if (texture3D_from_ex5(&cloud_texture, "./res/textures/noise5.ex5") != 0) {
 		log("Error: Failed to load texture in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
 
