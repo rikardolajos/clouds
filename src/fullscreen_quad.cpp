@@ -18,6 +18,8 @@ void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s)
 
 	/* Reserve two texture indices */
 	texture_activate(&q->texture);
+	texture_activate(&q->texture);
+	q->texture.index--;
 
 	/* Create framebuffer */
 	glGenFramebuffers(1, &q->framebuffer_object);
@@ -88,6 +90,8 @@ void fs_quad_pingpong_init(FS_Quad pingpong[2], int screen_width, int screen_hei
 	pingpong[1].screen_height = screen_height;
 	pingpong[1].shader = s;
 
+	texture_activate(&pingpong[0].texture);
+	texture_activate(&pingpong[1].texture);
 
 	glGenFramebuffers(1, &pingpong[0].framebuffer_object);
 	glGenTextures(1, &pingpong[0].texture.object);
@@ -105,11 +109,57 @@ void fs_quad_pingpong_init(FS_Quad pingpong[2], int screen_width, int screen_hei
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pingpong[i].texture.object, 0);
 	}
+
+	/* Create fullscreen quad */
+	float quad[] = {
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f
+	};
+
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof quad, quad, GL_STATIC_DRAW);
+
+	glGenVertexArrays(1, &pingpong[0].vertex_array_object);
+	glBindVertexArray(pingpong[0].vertex_array_object);
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
-void fs_quad_pingpong_render(FS_Quad pingpong[2])
+/* http://learnopengl.com/#!Advanced-Lighting/Bloom */
+void fs_quad_pingpong_render(FS_Quad pingpong[2], FS_Quad q)
 {
+	GLboolean horizontal = true;
+	GLboolean first_iteration = true;
+	GLuint amount = 10;
 
+	glUseProgram(pingpong[0].shader.shader_program);
+	
+	for (GLuint i = 0; i < amount; i++) {
+		glBindFramebuffer(GL_FRAMEBUFFER, pingpong[horizontal].framebuffer_object);
+
+		glUniform1i(glGetUniformLocation(pingpong[0].shader.shader_program, "horizontal"), horizontal);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, first_iteration ? q.color_buffers[1] : pingpong[!horizontal].texture.object);
+		GLuint image = glGetUniformLocation(pingpong[0].shader.shader_program, "image");
+		glUniform1i(image, 0);
+
+		glBindVertexArray(pingpong[0].vertex_array_object);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+
+		horizontal = !horizontal;
+		if (first_iteration)
+			first_iteration = false;
+	}
 }
 
 void fs_quad_set_as_render_target(FS_Quad q)
@@ -136,7 +186,7 @@ void fs_quad_render_to_post(FS_Quad q, FS_Quad post)
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void fs_quad_render_to_screen(FS_Quad q)
+void fs_quad_render_to_screen(FS_Quad q, FS_Quad pingpong[2])
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, q.screen_width, q.screen_height);
@@ -144,10 +194,15 @@ void fs_quad_render_to_screen(FS_Quad q)
 
 	glUseProgram(q.shader.shader_program);
 
-	glActiveTexture(GL_TEXTURE0 + q.texture.index);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, q.texture.object);
 	GLuint buffer = glGetUniformLocation(q.shader.shader_program, "HDR_buffer");
-	glUniform1i(buffer, q.texture.index);
+	glUniform1i(buffer, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, pingpong[1].texture.object);
+	GLuint bloom = glGetUniformLocation(q.shader.shader_program, "bloom_blur");
+	glUniform1i(bloom, 1);
 
 	glBindVertexArray(q.vertex_array_object);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

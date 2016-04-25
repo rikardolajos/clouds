@@ -339,7 +339,8 @@ int main(int argc, char** argv)
 		model_render(terrain_model);
 
 		fs_quad_render_to_post(fs_quad, fs_quad_post);
-		fs_quad_render_to_screen(fs_quad_post);
+		fs_quad_pingpong_render(fs_quad_pingpong, fs_quad_post);
+		fs_quad_render_to_screen(fs_quad_post, fs_quad_pingpong);
 
 		SDL_GL_SwapWindow(window);
 	}

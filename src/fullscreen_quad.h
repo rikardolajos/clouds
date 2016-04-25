@@ -20,10 +20,10 @@ struct FS_Quad {
 
 void fs_quad_init(FS_Quad* q, int screen_width, int screen_height, Shader s);
 void fs_quad_pingpong_init(FS_Quad pingpong[2], int screen_width, int screen_height, Shader s);
-void fs_quad_pingpong_render(FS_Quad pingpong[2]);
+void fs_quad_pingpong_render(FS_Quad pingpong[2], FS_Quad q);
 void fs_quad_set_as_render_target(FS_Quad q);
 void fs_quad_render_to_post(FS_Quad q, FS_Quad post);
-void fs_quad_render_to_screen(FS_Quad q);
+void fs_quad_render_to_screen(FS_Quad q, FS_Quad pingpong[2]);
 
 
 #endif
