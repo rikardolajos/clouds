@@ -9,6 +9,7 @@
 #include "camera.h"
 #include "cloud_tiling.h"
 #include "cloud_preprocess.h"
+#include "framebuffer.h"
 #include "fullscreen_quad.h"
 #include "log.h"
 #include "model.h"
@@ -157,120 +158,20 @@ int main(int argc, char** argv)
 	if (shader_init(&post_shader, "./res/shaders/post.vert", "./res/shaders/post.frag") != 0) {
 		log("Error: Failed to initialize shader in %s at line %d.\n\n", __FILE__, __LINE__);
 	}
-		
-	///* Initialize fullscreen quad */
-	//FS_Quad fs_quad;
-	//fs_quad_init(&fs_quad, SCREEN_WIDTH, SCREEN_HEIGHT, resolve_shader);
-	//log_opengl_error();
-
-	///* Initialize pingpong quad */
-	//FS_Quad fs_quad_pingpong[2];
-	//fs_quad_pingpong_init(fs_quad_pingpong, SCREEN_WIDTH, SCREEN_HEIGHT, blur_shader);
-	//log_opengl_error();
-
-	///* Initialize fullscreen post quad */
-	//FS_Quad fs_quad_post;
-	//fs_quad_init(&fs_quad_post, SCREEN_WIDTH, SCREEN_HEIGHT, post_shader);
-	//log_opengl_error();
-
-
 
 	/* Set up framebuffers */
-	/* Scene FBO*/
-	GLuint scene_fbo;
-	glGenFramebuffers(1, &scene_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, scene_fbo);
+	log("Setting up framebuffers...\n");
+	Framebuffer scene_framebuffer;
+	framebuffer_scene_init(&scene_framebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	GLuint scene_color_buffer;
-	glGenTextures(1, &scene_color_buffer);
+	Framebuffer cloud_framebuffer;
+	framebuffer_cloud_init(&cloud_framebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	glBindTexture(GL_TEXTURE_2D, scene_color_buffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, scene_color_buffer, 0);
-	
-	GLuint depth_rbo;
-	glGenRenderbuffers(1, &depth_rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo);
-	
-	GLuint scene_attachments[1] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, scene_attachments);
-	
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		log("Framebuffer not complete!");
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	/* Cloud FBO with two colour attachments */
-	GLuint cloud_fbo;
-	glGenFramebuffers(1, &cloud_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, cloud_fbo);
-
-	GLuint cloud_color_buffers[2];
-	glGenTextures(2, cloud_color_buffers);
-	for (GLuint i = 0; i < 2; i++) {
-		glBindTexture(GL_TEXTURE_2D, cloud_color_buffers[i]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, cloud_color_buffers[i], 0);
-	}
-
-	//GLuint rboDepth;
-	//glGenRenderbuffers(1, &rboDepth);
-	//glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-
-	GLuint cloud_attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-	glDrawBuffers(2, cloud_attachments);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		log("Framebuffer not complete!");
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	/* Pingpong framebuffer */
-	GLuint pingpong_fbo[2];
-	GLuint pingpong_color_buffers[2];
-	glGenFramebuffers(2, pingpong_fbo);
-	glGenTextures(2, pingpong_color_buffers);
-	for (GLuint i = 0; i < 2; i++) {
-		glBindFramebuffer(GL_FRAMEBUFFER, pingpong_fbo[i]);
-		glBindTexture(GL_TEXTURE_2D, pingpong_color_buffers[i]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpong_color_buffers[i], 0);
-		
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			log("Framebuffer not complete!");
-	}
-
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-
-
-
-
-
-
-
-
-
-
+	Framebuffer pingpong_framebuffer[2];
+	framebuffer_pingpong_init(pingpong_framebuffer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	/* Load models */
-	log("Loading sky dome...\n");
+	log("\nLoading sky dome...\n");
 	Model sky_model;
 	if (model_load_obj(&sky_model, "./res/models/sky_uv.obj") != 0) {
 		log("Error: Failed to load model in %s at line %d.\n\n", __FILE__, __LINE__);
@@ -430,26 +331,21 @@ int main(int argc, char** argv)
 		shader_uniform_vec3(resolve_shader, sun.position, "sun_pos");
 
 		/* OpenGL rendering */
-		//fs_quad_set_as_render_target(fs_quad);
 
 		/* Render terrain and sky */
-		glBindFramebuffer(GL_FRAMEBUFFER, scene_fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, scene_framebuffer.fbo);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		
 		model_render(sky_model);
 		model_render(terrain_model);
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 		/* Render clouds via resolve shader */
-		glBindFramebuffer(GL_FRAMEBUFFER, cloud_fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, cloud_framebuffer.fbo);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader_use(resolve_shader);
 
 		glActiveTexture(GL_TEXTURE10);
-		glBindTexture(GL_TEXTURE_2D, scene_color_buffer);
+		glBindTexture(GL_TEXTURE_2D, scene_framebuffer.color_buffer[0]);
 		GLuint diffuse_buffer = glGetUniformLocation(resolve_shader.shader_program, "diffuse_buffer");
 		glUniform1i(diffuse_buffer, 10);
 
@@ -460,9 +356,13 @@ int main(int argc, char** argv)
 		GLuint amount = 10;
 		shader_use(blur_shader);
 		for (GLuint i = 0; i < amount; i++) {
-			glBindFramebuffer(GL_FRAMEBUFFER, pingpong_fbo[horizontal]);
+			glBindFramebuffer(GL_FRAMEBUFFER, pingpong_framebuffer[horizontal].fbo);
 			glUniform1i(glGetUniformLocation(blur_shader.shader_program, "horizontal"), horizontal);
-			glBindTexture(GL_TEXTURE_2D, first_iteration ? cloud_color_buffers[1] : pingpong_color_buffers[!horizontal]);
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, first_iteration ? cloud_framebuffer.color_buffer[1] : pingpong_framebuffer[!horizontal].color_buffer[0]);
+			GLuint image = glGetUniformLocation(blur_shader.shader_program, "image");
+			glUniform1i(image, 5);
+
 			render_quad();
 			horizontal = !horizontal;
 			if (first_iteration)
@@ -474,14 +374,13 @@ int main(int argc, char** argv)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shader_use(post_shader);
 
-
 		glActiveTexture(GL_TEXTURE11);
-		glBindTexture(GL_TEXTURE_2D, cloud_color_buffers[0]);
+		glBindTexture(GL_TEXTURE_2D, cloud_framebuffer.color_buffer[0]);
 		GLuint hdr_buffer = glGetUniformLocation(post_shader.shader_program, "HDR_buffer");
 		glUniform1i(hdr_buffer, 11);
 
 		glActiveTexture(GL_TEXTURE12);
-		glBindTexture(GL_TEXTURE_2D, pingpong_color_buffers[!horizontal]);
+		glBindTexture(GL_TEXTURE_2D, pingpong_framebuffer[!horizontal].color_buffer[0]);
 		GLuint bloom = glGetUniformLocation(post_shader.shader_program, "bloom_blur");
 		glUniform1i(bloom, 12);
 
