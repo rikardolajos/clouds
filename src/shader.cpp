@@ -134,6 +134,11 @@ void shader_recompile()
 	}
 }
 
+void shader_use(Shader shader)
+{
+	glUseProgram(shader.shader_program);
+}
+
 void shader_uniform_mat4(Shader shader, glm::mat4 matrix, const char* name)
 {
 	glUseProgram(shader.shader_program);
