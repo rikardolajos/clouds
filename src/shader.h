@@ -18,6 +18,7 @@ struct Shader {
 
 int shader_init(Shader* shader, const char* vertex_shader_path, const char* fragment_shader_path, int recompile = 0);
 void shader_recompile();
+void shader_use(Shader shader);
 void shader_uniform_mat4(Shader shader, glm::mat4 matrix, const char* name);
 void shader_uniform_vec2(Shader shader, glm::vec2 vector, const char* name);
 void shader_uniform_vec3(Shader shader, glm::vec3 vector, const char* name);
