@@ -34,5 +34,9 @@ glm::mat4 camera_projection_matrix(Camera* c);
 void camera_translate(Camera* c, const char* direction, float delta_time);
 void camera_movement(Camera* c, float delta_time);
 void camera_toggle_mouse(Camera* c, SDL_Window* w);
+void camera_track1(Camera* c, Uint32 time, Uint32 duration);
+void camera_track2(Camera* c, Uint32 time, Uint32 duration);
+void camera_track3(Camera* c, Uint32 time, Uint32 duration);
+void camera_track4(Camera* c, Uint32 time, Uint32 duration);
 
 #endif

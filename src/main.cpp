@@ -232,11 +232,18 @@ int main(int argc, char** argv)
 	shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
 
 	/* Main loop */
-	log("\nStarting main loop.\n\n");
+	log("\nStarting main loop.\n");
 	bool exit = false;
 	float delta_time = 0.0f;
 	auto last_frame = std::chrono::high_resolution_clock::now();
 	float avrage_timer = 0.0f;
+	bool camera_test = false;
+	int camera_track = 1;
+	Uint32 camera_time = 0;
+	Uint32 camera_start = 0;
+	Uint32 camera_end = 0;
+	Uint32 camera_duration = 20 * 1000;
+	Uint64 frame_counter = 0;
 
 	while (!exit) {
 		/* Frame time calculation */
@@ -279,6 +286,16 @@ int main(int argc, char** argv)
 					shader_send_texture2D(terrain_shader, terrain_texture, "terrain_texture");
 					shader_send_texture1D(resolve_shader, mie_texture, "mie_texture");
 				}
+				if (e.key.keysym.sym == SDLK_F1) {
+					if (!camera_test) {
+						log("Running performance test...");
+						frame_counter = 0;
+						camera_track = 1;
+						camera_start = SDL_GetTicks();
+						camera_end = camera_start + camera_duration;
+						camera_test = true;
+					}
+				}
 			}
 
 			if (e.type == SDL_MOUSEBUTTONDOWN) {
@@ -304,7 +321,39 @@ int main(int argc, char** argv)
 		///////////////////////////////////////////////////// http://learnopengl.com/#!Advanced-Lighting/HDR
 
 		/* Camera movement */
-		camera_movement(&camera, delta_time);
+		if (camera_test) {
+
+			camera_time = SDL_GetTicks() - camera_start;
+
+			switch (camera_track) {
+			case 1:
+				camera_track1(&camera, camera_time, camera_duration);
+				break;
+			case 2:
+				camera_track2(&camera, camera_time, camera_duration);
+				break;
+			case 3:
+				camera_track3(&camera, camera_time, camera_duration);
+				break;
+			case 4:
+				camera_track4(&camera, camera_time, camera_duration);
+				break;
+			}
+
+			if (camera_time > camera_duration) {
+				camera_track++;
+				camera_time = 0;
+				camera_start = SDL_GetTicks();
+				camera_end = camera_start + camera_duration;
+				if (camera_track > 4) {
+					log("Done\n");
+					log("Total frames rendered: %" SDL_PRIu64 "\n", frame_counter);
+					camera_test = false;
+				}
+			}
+		} else {
+			camera_movement(&camera, delta_time);
+		}
 		sky_model.position = camera.position;
 		sun.position = camera.position + glm::vec3(1000.0f, 1000.0f, 1000.0f);
 
@@ -330,7 +379,7 @@ int main(int argc, char** argv)
 		shader_uniform_vec3(resolve_shader, camera.position, "camera_pos");
 		shader_uniform_vec3(resolve_shader, sun.position, "sun_pos");
 
-		/* OpenGL rendering */
+		/*** OpenGL rendering ***/
 
 		/* Render terrain and sky */
 		glBindFramebuffer(GL_FRAMEBUFFER, scene_framebuffer.fbo);
@@ -387,6 +436,8 @@ int main(int argc, char** argv)
 		render_quad();
 
 		SDL_GL_SwapWindow(window);
+
+		frame_counter++;
 	}
 
 	/* Shutdown functions */

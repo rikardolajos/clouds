@@ -101,3 +101,75 @@ void camera_toggle_mouse(Camera* c, SDL_Window* w)
 	if (c->enabled == SDL_FALSE)
 		SDL_WarpMouseInWindow(w, c->width / 2, c->height / 2);
 }
+
+/* Defines a camera track using a Bézier curve */
+void camera_track1(Camera* c, Uint32 time, Uint32 duration)
+{
+	float t = (float)time / duration;
+	glm::vec3 p0 = glm::vec3(0.0f, 5.0f, 0.0f);
+	glm::vec3 p1 = glm::vec3(70.0f, 300.0f, -20.0f);
+	glm::vec3 p2 = glm::vec3(150.0f, 200.0f, 220.0f);
+	glm::vec3 p3 = glm::vec3(230.0f, 50.0f, 270.0f);
+
+	c->pitch = 20.0f;
+	c->yaw = 50.0f;
+	c->position = powf((1 - t), 3) * p0 + 3 * powf((1 - t), 2) * t * p1 + 3 * (1 - t) * powf(t, 2) * p2 + powf(t, 3) * p3;
+
+	c->front.x = cos(glm::radians(c->pitch)) * cos(glm::radians(c->yaw));
+	c->front.y = sin(glm::radians(c->pitch));
+	c->front.z = cos(glm::radians(c->pitch)) * sin(glm::radians(c->yaw));
+}
+
+void camera_track2(Camera* c, Uint32 time, Uint32 duration)
+{
+	float t = (float)time / duration;
+	glm::vec3 p0 = glm::vec3(250.0f, 200.0f, -220.0f);
+	glm::vec3 p1 = glm::vec3(250.0f, 250.0f, 50.0f);
+	glm::vec3 p2 = glm::vec3(200.0f, 100.0f, 120.0f);
+	glm::vec3 p3 = glm::vec3(100.0f, 200.0f, 220.0f);
+	
+
+	c->pitch = -5.0f;
+	c->yaw = 90.0f;
+	c->position = powf((1 - t), 3) * p0 + 3 * powf((1 - t), 2) * t * p1 + 3 * (1 - t) * powf(t, 2) * p2 + powf(t, 3) * p3;
+
+	c->front.x = cos(glm::radians(c->pitch)) * cos(glm::radians(c->yaw));
+	c->front.y = sin(glm::radians(c->pitch));
+	c->front.z = cos(glm::radians(c->pitch)) * sin(glm::radians(c->yaw));
+}
+
+void camera_track3(Camera* c, Uint32 time, Uint32 duration)
+{
+	float t = (float)time / duration;
+	glm::vec3 p0 = glm::vec3(350.0f, 350.0f, 350.0f);
+	glm::vec3 p1 = glm::vec3(250.0f, 250.0f, 100.0f);
+	glm::vec3 p2 = glm::vec3(100.0f, 50.0f, 120.0f);
+	glm::vec3 p3 = glm::vec3(10.0f, 250.0f, 20.0f);
+
+
+	c->pitch = -30.0f;
+	c->yaw = -170.0f;
+	c->position = powf((1 - t), 3) * p0 + 3 * powf((1 - t), 2) * t * p1 + 3 * (1 - t) * powf(t, 2) * p2 + powf(t, 3) * p3;
+
+	c->front.x = cos(glm::radians(c->pitch)) * cos(glm::radians(c->yaw));
+	c->front.y = sin(glm::radians(c->pitch));
+	c->front.z = cos(glm::radians(c->pitch)) * sin(glm::radians(c->yaw));
+}
+
+void camera_track4(Camera* c, Uint32 time, Uint32 duration)
+{
+	float t = (float)time / duration;
+	glm::vec3 p0 = glm::vec3(-100.0f, 0.0f, -350.0f);
+	glm::vec3 p1 = glm::vec3(0.0f, 0.0f, -100.0f);
+	glm::vec3 p2 = glm::vec3(100.0f, 50.0f, 20.0f);
+	glm::vec3 p3 = glm::vec3(200.0f, 300.0f, 20.0f);
+
+
+	c->pitch = 10.0f;
+	c->yaw = 0.0f;
+	c->position = powf((1 - t), 3) * p0 + 3 * powf((1 - t), 2) * t * p1 + 3 * (1 - t) * powf(t, 2) * p2 + powf(t, 3) * p3;
+
+	c->front.x = cos(glm::radians(c->pitch)) * cos(glm::radians(c->yaw));
+	c->front.y = sin(glm::radians(c->pitch));
+	c->front.z = cos(glm::radians(c->pitch)) * sin(glm::radians(c->yaw));
+}
