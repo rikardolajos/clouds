@@ -18,6 +18,8 @@ uniform vec3 sun_pos;
 
 uniform mat4 view;
 uniform mat4 proj;
+uniform mat4 inv_view;
+uniform mat4 inv_proj;
 
 float PI = 3.1415962;
 float PI_r = 0.3183098;
@@ -206,9 +208,9 @@ void main() {
 	float y = 2.0 * gl_FragCoord.y / view_port.y - 1.0;
 	vec2 ray_nds = vec2(x, y);
 	vec4 ray_clip = vec4(ray_nds, -1.0, 1.0);
-	vec4 ray_view = inverse(proj) * ray_clip;
+	vec4 ray_view = inv_proj * ray_clip;
 	ray_view = vec4(ray_view.xy, -1.0, 0.0);
-	vec3 ray_world = (inverse(view) * ray_view).xyz;
+	vec3 ray_world = (inv_view * ray_view).xyz;
 	ray_world = normalize(ray_world);
 
 	vec4 cloud_color = cast_ray(camera_pos, ray_world);

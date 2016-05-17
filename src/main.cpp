@@ -292,7 +292,7 @@ int main(int argc, char** argv)
 				if (e.key.keysym.sym == SDLK_F1) {
 					if (!camera_test) {
 						log("Running performance test...");
-						perf = fopen("./performance_data_light_off.txt", "w");
+						perf = fopen("./performance_data_inv_cpu.txt", "w");
 						frame_counter = 0;
 						prev_count = SDL_GetPerformanceCounter();
 						camera_track = 1;
@@ -387,6 +387,9 @@ int main(int argc, char** argv)
 
 		shader_uniform_mat4(resolve_shader, camera_view_matrix(&camera), "view");
 		shader_uniform_mat4(resolve_shader, camera_projection_matrix(&camera), "proj");
+
+		shader_uniform_mat4(resolve_shader, glm::inverse(camera_view_matrix(&camera)), "inv_view");
+		shader_uniform_mat4(resolve_shader, glm::inverse(camera_projection_matrix(&camera)), "inv_proj");
 
 		/* Send miscellaneous uniforms to shaders */
 		shader_uniform_vec3(terrain_shader, camera.position, "camera_pos");
