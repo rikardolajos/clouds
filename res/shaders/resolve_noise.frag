@@ -26,19 +26,19 @@ float rand(vec2 co){
   return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-float HG(float costheta, float t) {
+float HG(float costheta) {
 	float g = 0.9;
 	return 1.25 * PI_r * (1 - pow(g, 2.0)) / pow((1 + pow(g, 2.0) - 2 * g * costheta), 1.5) + 0.5;
 }
 
 float Mie(float costheta) {
 	float angle = acos(costheta);
-	return texture(mie_texture, (PI - angle) * PI_r).r;
+	return 10 * texture(mie_texture, (PI - angle) * PI_r).r + 0.5;
 }
 
 float phase(vec3 v1, vec3 v2, float t) {
 	float costheta = dot(v1, v2) / length(v1) / length(v2);
-	return HG(-costheta, t);
+	return HG(-costheta);
 	//return Mie(costheta);
 }
 
@@ -101,7 +101,7 @@ float cast_scatter_ray(vec3 origin, vec3 dir, float t) {
 		inside += cloud_sampling(sample_point, delta);
 	}
 
-	float scatter = 2 * exp(-0.7 * inside) * (1.5 - exp(-0.9 * inside));
+	float scatter = 3 * exp(-0.7 * inside) * (1.0 - exp(-0.8 * inside));
 
 	float value = scatter * phase;
 	return value;
@@ -115,8 +115,8 @@ vec4 cast_ray(vec3 origin, vec3 dir) {
 	float end = 500.0;
 
 	vec4 value = vec4(0.0);
-	vec3 cloud_bright = vec3(4.95, 4.8, 4.75);
-	vec3 cloud_dark = vec3(0.624, 0.777, 0.8805);//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
+	vec3 cloud_bright = vec3(254, 254, 250) * 0.03;//vec3(4.95, 4.8, 4.75);
+	vec3 cloud_dark = vec3(0.6558441558, 0.9465648855, 1.55);//vec3(0.624, 0.777, 0.8805);//vec3(0.416, 0.518, 0.694); //vec3(0.671, 0.725, 0.753);
 	value.rgb = cloud_dark;
 
 	float length_inside = 0.0;
@@ -220,7 +220,7 @@ void main() {
 	fcolor.rgb = mix(diffuse_color.rgb, cloud_color.rgb, cloud_color.a);
 
 	float brightness = dot(fcolor.rgb, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness > 20.0) {
+    if(brightness > 500.0) {
         bright_color = vec4(fcolor.rgb, 1.0);
 	}
 
@@ -231,7 +231,7 @@ void main() {
 	//fcolor = vec4(vec3(texture(perlin1, vec3(x, y, 0.0)).r), 1.0);
 	//fcolor = vec4(vec3(texture(terrain_texture, vec2(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y) * 6)), 1.0);
 	vec3 s = vec3(texture(cloud_structure, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).r);
-	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.5) * 2).rrr;
-	//t = vec3(coverage(t.r));
+	vec3 t = texture(cloud_texture, vec3(gl_FragCoord.x / view_port.x, gl_FragCoord.y / view_port.y, 0.59)).rrr * 1.2;
+	t = vec3(coverage(t.r));
 	//fcolor = vec4(t, 1.0);
 }

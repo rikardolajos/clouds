@@ -11,8 +11,8 @@ void main () {
 	float sun_pos = smoothstep(0.9995, 0.99995, sun);
 	vec3 sun_color = vec3(1, 0.55, 0.15) * 1000;
 
-	vec3 deep_blue = vec3(0.15, 0.3, 0.8) * 1.5;
-	vec3 light_blue = vec3(0.65, 0.89, 1.2) * 2.5;
+	vec3 deep_blue = vec3(0.3421052632, 0.9029850746, 2.311688312);
+	vec3 light_blue = deep_blue + 1;
 
 	/* Lighter around the horizon */
 	vec3 sky_color = mix(deep_blue, light_blue, smoothstep(-1.0, 0.7, dot(normalize(N), vec3(0.0, 1.0, 0.0))));

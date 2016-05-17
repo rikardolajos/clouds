@@ -239,11 +239,14 @@ int main(int argc, char** argv)
 	float avrage_timer = 0.0f;
 	bool camera_test = false;
 	int camera_track = 1;
-	Uint32 camera_time = 0;
-	Uint32 camera_start = 0;
-	Uint32 camera_end = 0;
-	Uint32 camera_duration = 20 * 1000;
+	Uint64 camera_time = 0;
+	Uint64 camera_start = 0;
+	Uint64 camera_end = 0;
+	Uint64 camera_era = 0;
+	Uint64 camera_duration = 20 * SDL_GetPerformanceFrequency();
 	Uint64 frame_counter = 0;
+	FILE* perf;
+	Uint64 prev_count = 0;
 
 	while (!exit) {
 		/* Frame time calculation */
@@ -289,10 +292,13 @@ int main(int argc, char** argv)
 				if (e.key.keysym.sym == SDLK_F1) {
 					if (!camera_test) {
 						log("Running performance test...");
+						perf = fopen("./performance_data_light_off.txt", "w");
 						frame_counter = 0;
+						prev_count = SDL_GetPerformanceCounter();
 						camera_track = 1;
-						camera_start = SDL_GetTicks();
+						camera_start = SDL_GetPerformanceCounter();
 						camera_end = camera_start + camera_duration;
+						camera_era = camera_start;
 						camera_test = true;
 					}
 				}
@@ -323,7 +329,14 @@ int main(int argc, char** argv)
 		/* Camera movement */
 		if (camera_test) {
 
-			camera_time = SDL_GetTicks() - camera_start;
+			camera_time = SDL_GetPerformanceCounter() - camera_start;
+
+			
+			double frame_time = (double)((SDL_GetPerformanceCounter() - prev_count) * 1000) / SDL_GetPerformanceFrequency();
+			double total_time = (double)((SDL_GetPerformanceCounter() - camera_era) * 1000) / SDL_GetPerformanceFrequency();
+
+			fprintf(perf, "%f %f\n", total_time, frame_time);
+			prev_count = SDL_GetPerformanceCounter();
 
 			switch (camera_track) {
 			case 1:
@@ -343,11 +356,17 @@ int main(int argc, char** argv)
 			if (camera_time > camera_duration) {
 				camera_track++;
 				camera_time = 0;
-				camera_start = SDL_GetTicks();
+				camera_start = SDL_GetPerformanceCounter();
 				camera_end = camera_start + camera_duration;
+				double elapsed_time = (double)((camera_start - camera_era) * 1000) / SDL_GetPerformanceFrequency();
 				if (camera_track > 4) {
 					log("Done\n");
+					log("Time passed: %f ms\n", elapsed_time);
 					log("Total frames rendered: %" SDL_PRIu64 "\n", frame_counter);
+					log("Average frame time: %f ms\n", elapsed_time / frame_counter);
+					log("Average frequency: %f f/s\n\n", (double)frame_counter / (elapsed_time / 1000));
+					fprintf(perf, "\n");
+					fclose(perf);
 					camera_test = false;
 				}
 			}

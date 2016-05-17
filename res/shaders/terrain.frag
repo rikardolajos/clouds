@@ -13,7 +13,7 @@ uniform sampler2D terrain_texture;
 void main() {
 
 	vec3 fog_color = vec3(0.3, 0.3, 0.7);
-	vec3 terrain_color_base = vec3(0.33, 0.34, 0.03);
+	vec3 terrain_color_base = vec3(0.30, 0.34, 0.05);
 	vec3 terrain_color_top = vec3(0.5, 0.4, 0.1);
 
 	vec3 fog = fog_color * smoothstep(300, 500, dist) * 1;
